@@ -1,0 +1,130 @@
+<template>
+    <template if:true={isUnidadMedica}>
+        <!-- Información de UMU -->
+        <template if:false={isPedidos}>
+            <div class="title">Unidad Médica
+                <br><span class="data subtitles">{tipoDePedido}</span>
+            </div>
+
+            <div class="slds-m-top_x-small slds-m-bottom_medium">
+                
+                <lightning-layout multiple-rows class="custom-box-design">
+                    <lightning-layout-item size="12" small-device-size="6" medium-device-size="4" large-device-size="4" padding="around-small">
+                        <div class="layout-item-align slds-p-around_medium slds-text-align_center">
+                            <span class="subtitles">Clave Presupuestal</span> 
+                                <div class="data">{clavePresupuestal}</div>
+                        </div>
+                    </lightning-layout-item>
+
+                    <lightning-layout-item size="12" small-device-size="6" medium-device-size="4" large-device-size="4" padding="around-small">
+                        <div class="layout-item-align slds-p-around_medium slds-text-align_center">
+                            <span class="subtitles">Tipo de Unidad Médica</span> 
+                            <div class="data">{tipoUmu}</div>
+                        </div>
+                    </lightning-layout-item>
+
+                    <lightning-layout-item size="12" small-device-size="6" medium-device-size="4" large-device-size="4" padding="around-small">
+                        <div class="layout-item-align slds-p-around_medium slds-text-align_center">
+                            <span class="subtitles">Nombre</span> 
+                            <div class="data">{name}</div>
+                        </div>
+                    </lightning-layout-item>
+
+                    <lightning-layout-item size="12" small-device-size="6" medium-device-size="4" large-device-size="4" padding="around-small">
+                        <div class="layout-item-align slds-p-around_medium slds-text-align_center">
+                            <span class="subtitles">Número de Unidad Médica</span> 
+                            <div class="data">{umu}</div>
+                        </div>
+                    </lightning-layout-item>
+
+                    <lightning-layout-item size="12" small-device-size="6" medium-device-size="4" large-device-size="4" padding="around-small">
+                        <div class="layout-item-align slds-p-around_medium slds-text-align_center">
+                            <span class="subtitles">Delegación</span> 
+                                <div class="data">{delegacion}</div>
+                        </div>
+                    </lightning-layout-item>
+
+                    <lightning-layout-item size="12" small-device-size="6" medium-device-size="4" large-device-size="4" padding="around-small">
+                        <div class="layout-item-align slds-p-around_medium slds-text-align_center">
+                            <span class="subtitles">Última Fecha de Validación</span> 
+                            <div class="data">...</div> 
+                        </div>
+                    </lightning-layout-item>
+
+                    <lightning-layout-item size="12" small-device-size="6" medium-device-size="4" large-device-size="4" padding="around-small">
+                        <div class="layout-item-align slds-p-around_medium slds-text-align_center">
+                            <span class="subtitles">Próxima Fecha De Validación</span> 
+                            <div class="data">...</div>
+                        </div>
+                    </lightning-layout-item>
+                </lightning-layout>
+            </div>
+
+            <template if:true={isUltimaVentantaOrdinario}>
+                <lightning-layout-item size="4" padding="slds-m-bottom_small around-small">    
+                    <button class="guardar-btn-ordinario slds-align_absolute-center" onclick={handleGuardar}>Guardar</button>
+                </lightning-layout-item>
+            </template>
+        </template>
+        
+        <!-- Cargar Documentos -->
+        <template if:true={isPedidos}>
+            <div class="slds-show">
+                <span class="title">Justificacion y Documentos</span>
+                <div class="layout-documentos">
+                    <div class="slds-p-around_none slds-m-top_x-small slds-m-bottom_medium slds-m-horizontal_none">
+                        <lightning-layout multiple-rows>
+                            <lightning-layout-item size="12" small-device-size="12" medium-device-size="12" large-device-size="12" padding="around-small">
+                                <div class="slds-form-element">
+                                    <label class="slds-form-element__label" for="text-input-id-47">
+                                        <abbr class="slds-required" title="required">* </abbr>Número de Oficio</label>
+                                    <div class="slds-form-element__control">
+                                        <lightning-input type="text" variant="label-hidden" onchange={handleOnChange}> </lightning-input> 
+                                    </div>
+                                </div>
+                            </lightning-layout-item>
+                            <lightning-layout-item size="12" small-device-size="12" medium-device-size="12" large-device-size="12" padding="around-small">
+                                <div class="slds-form-element">
+                                    <div class="slds-form-element__control">
+                                        <lightning-textarea name="input3" label="Justificación" placeholder="type here..." onchange={handleTextAreaChange}></lightning-textarea>
+                                    </div>
+                                </div>
+                                <lightning-input
+                                    type="file"
+                                    label={fileName}
+                                    accept='.pdf'
+                                    onchange={handleUploadFinished}
+                                ></lightning-input> 
+                            </lightning-layout-item>
+                            <lightning-layout-item size="12" small-device-size="12" medium-device-size="12" large-device-size="12" padding="around-small">    
+                                <button class="guardar-btn" onclick={handleGuardar}>Guardar</button>
+                            </lightning-layout-item>
+                        </lightning-layout>
+                    </div>
+                </div>
+            </div>
+        </template>
+    </template>
+    
+    <template if:false={isUnidadMedica}>
+        <lightning-layout class="row">
+            <lightning-layout-item size="4" class="col slds-p-right_small">
+                <c-lista-unidad-medica
+                    onumudata={handleUmuData}
+                    onaccountid={handleSelectedAccountId}
+                    onuserid={handleUserId}
+                ></c-lista-unidad-medica>
+            </lightning-layout-item>
+
+            <lightning-layout-item size="8" class="col">
+                <c-opciones-de-ordenes
+                    onnordinario={handlePedidoNoOrdinario}
+                    onespeciales={handlePedidoEspeciales}
+                    onordinario={handlePedidoOrdinario}
+                    accountselected={accountSelected}
+                ></c-opciones-de-ordenes>
+            </lightning-layout-item>
+
+        </lightning-layout>
+    </template>
+</template>
