@@ -1,0 +1,171 @@
+*{
+    margin: 0;
+    padding: 0;
+}
+
+
+.container{
+    font-size: 17px;
+    padding: 25px;
+    background-color: white;
+}
+
+/* HEADER */
+.grid-header{
+    display: grid;
+    grid-template-columns: 200px 200px;
+    grid-template-rows: 100px;
+    place-items: center;
+    font-size: 12px;
+}
+
+.margin-left-input{
+    margin-left: 13px;
+}
+
+.replaniacion-text-style{
+    margin-top: 40px;
+}
+
+
+
+/* LEFT PANEL STYLE */
+.left-panel{
+    overflow-y: scroll;
+    border-right: 0.6px solid #c0baba;
+    height: 600px;
+    font-size: 12px;
+}
+
+.text-weight{
+    font-weight: 600;
+}
+
+.text{
+    display: block;
+}
+
+.left-panel-data{
+    text-align: center;
+}
+
+.filtro-Estatus{
+    max-width: 400px;
+    padding: 10px;
+}
+
+
+/* RIGHT PANEL STYLE */
+.right-panel{
+    display: grid;
+    grid-template-columns: auto auto;
+    grid-template-rows: 46px 137px;
+}
+
+.right-panel-item1{
+    font-weight: 600;
+    grid-column-start: 1;
+    grid-column-end: 3;
+}
+.right-panel{
+    margin-left: 10px;
+}
+
+.button-aprobar{
+    background-color: #3a85a7;
+    margin-left: 20px;
+}
+
+.button-btn{
+    /* Green */
+    border: none;
+    color: white;
+    border-radius: 10px;
+    padding: 15px 32px;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 12px;
+    margin-top: 12px;
+    font-weight: 600;
+}
+
+.button-editar{
+    background-color: transparent;
+    border: 1px solid black;
+    color: black;
+}
+
+.idle-content{
+    color: gray;
+    font-size: 18px;
+    margin-top: 300px;
+}
+
+.right-panel-item3{
+    width: 412px;
+}
+
+.right-panel-item5{
+    border-left: 0.6px solid #cdcdcd;
+    padding-left: 20px;
+}
+
+.comentario-contenido{
+    overflow-y: scroll;
+    text-align: center;
+}
+.ver-comments{
+    font-size: 13px;
+    margin-top: 6px;
+    height: 80px;
+    border-radius: 10px;
+    overflow: auto;
+    padding-left: 10px;
+    padding-top: 10px;
+    border-bottom: 0.5px solid #c2c2c2;
+    text-align: left;
+    
+}
+
+.ver-comments:hover{
+    background-color: rgb(232, 230, 230);
+    cursor: grab;
+}
+
+.textarea-width{
+    width: 400px;
+    height: 20px;
+    max-height: 30px;
+    font-size: 14px;
+    margin-left: 38px;
+}
+
+.comment-nombre{
+    font-weight: 600;
+}
+
+.comment-hora{
+    margin-left: 200px;
+}
+
+.no-comment{
+    font-size: 16px;
+    font-weight: 600;
+    color: rgb(197, 197, 197);
+    text-align: center;
+}
+
+.add-comment{
+    margin-left: 395px;
+    margin-top: 20px;
+    position: absolute;
+}
+
+/* .example-accordion{
+    overflow-y: auto;
+} */
+
+.comentario-contenido{
+    overflow-y: auto;
+    max-height: 200px
+}

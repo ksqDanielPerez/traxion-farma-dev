@@ -1,0 +1,55 @@
+<template>
+    <div class="container">
+        <div class="grid-left-panel" onclick={handleTransporteData} data-id={transporte.Id}>
+            <div class="left-panel-data text-weight">
+                {transporte.Id}
+            </div>
+            <div class="left-panel-data" style={setStatusStyle}>
+                {transporte.Status}
+            </div>
+            <div class="left-panel-data">
+                <span class="text">
+                    Id Transporte
+                </span>
+                <span class="text text-weight">
+                    {transporte.IdTransporte}
+                </span>
+            </div>
+            <div class="left-panel-data">
+                <span class="text">
+                    Delegación
+                </span>
+                <span class="text text-weight">
+                    {transporte.Delegacion}
+                </span>
+            </div>
+            <div class="left-panel-data">
+                <span class="text">
+                    UMU
+                </span>
+                <span class="text text-weight">
+                    {transporte.UMU}
+                </span>
+            </div>
+            <div class="left-panel-data">
+                <span class="text">
+                    ESTADO
+                </span>
+                <span class="text text-weight">
+                    {transporte.Estado}
+                </span>
+            </div>
+            <div class="left-panel-data">
+                <span class="text">
+                    Maxima Entrega
+                </span>
+                <span class="text text-weight">
+                    {transporte.FechaEntrega}
+                </span>
+            </div>
+            <div class="left-panel-data">
+                FECHA ARE
+            </div>
+        </div>
+    </div>
+</template>

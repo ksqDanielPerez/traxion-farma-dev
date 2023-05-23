@@ -1,0 +1,25 @@
+*{
+    margin: 0;
+    padding: 0;
+}
+
+.grid-left-panel{
+    display: grid;
+    /* grid-template-columns: 130px 130px; */
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 40px 60px 60px 60px;
+    place-items: center;
+    border-bottom: 0.6px solid #cdcdcd;
+}
+
+.text-weight{
+    font-weight: 600;
+}
+
+.left-panel-data{
+    text-align: center;
+}
+
+.text{
+    display: block;
+}

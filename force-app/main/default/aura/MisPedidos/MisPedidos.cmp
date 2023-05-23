@@ -1,0 +1,228 @@
+<aura:component controller="MisPedidosClass" implements="forceCommunity:availableForAllPageTypes">
+
+    <!-- SELF ATTRIBUTES -->
+    <aura:attribute name="msClaves" type="List"/>
+    <aura:attribute name="msUMUs" type="List"/>
+    <aura:attribute name="msEstados" type="List"/>
+    <aura:attribute name="msPedidos" type="List"/>
+    <aura:attribute name="msTransportes" type="List"/>
+    <aura:attribute name="clavesSeleccionadas" type="List" />
+    <aura:attribute name="umusSeleccionadas" type="List" />
+    <aura:attribute name="estadosSeleccionados" type="List" />
+    <aura:attribute name="pedidosSeleccionados" type="List" />
+    <aura:attribute name="transportesSeleccionados" type="List" />
+    <aura:attribute name="fechaInicio" type="Date" />
+    <aura:attribute name="fechaFin" type="Date" />  
+    <aura:attribute name="allData" type="List" />
+    <aura:attribute name="filteredData" type="List" />
+    <aura:attribute name="tableData" type="List" />
+    <aura:attribute name="columns" type="Object[]" />
+    <aura:attribute name="pageSize" type="Integer" default="5" />
+    <aura:attribute name="currentPageNumber" type="Integer" default="1" />
+    <aura:attribute name="totalPages" type="Integer" default="1" />
+    <aura:attribute name="searchPhrase" type="String" />
+    <aura:attribute name="isLoading" type="Boolean" default="false" />
+    <aura:attribute name="deliveryNumber" type="String" />
+    <aura:attribute name="remisionNumber" type="String" /> 
+    <aura:attribute name="tipoDeClaveObj" type="Object" />
+    <aura:attribute name="tipoDeUMUObj" type="Object" />
+    <aura:attribute name="tipoDeEstadoObj" type="Object" />
+    <aura:attribute name="tipoDePedidoObj" type="Object" />
+    <aura:attribute name="showHideFiltros" type="Object" />
+     
+    
+    <!--EVENTS-->
+    <aura:registerEvent name = "limpiarParametrosDeFiltros" type = "c.limpiarParametrosDeFiltros"/>
+    <aura:registerEvent name = "mostrarDetalles" type = "c.mostrarDetalles"/>
+    <aura:registerEvent name = "mostrarDetallesGenerales" type = "c.mostrarDetallesGenerales"/>
+    <aura:registerEvent name = "mostrarDetallesEspecificos" type = "c.mostrarDetallesEspecificos"/>
+
+    <!-- DEPENDANCIES -->
+    <aura:dependency resource="markup://c:FiltrarPedidosMultiSelect" type="COMPONENT" />
+    
+    <!-- HANDLERS -->
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+
+    <!--AURA METHODS-->
+    <aura:method name="resultadosDeClaves" action="{!c.obtenerClaves}" access="public">
+        <aura:attribute name="picklistDeClavesSeleccionadas" type="List"/> 
+    </aura:method>
+    <aura:method name="resultadosDeUMUs" action="{!c.obtenerUMUs}" access="public">
+        <aura:attribute name="picklistDeUMUsSeleccionadas" type="List"/> 
+    </aura:method>
+    <aura:method name="resultadosDeEstados" action="{!c.obtenerEstados}" access="public">
+        <aura:attribute name="picklistDeEstadosSeleccionados" type="List"/> 
+    </aura:method>
+    <aura:method name="resultadosDePedidos" action="{!c.obtenerPedidos}" access="public">
+        <aura:attribute name="picklistDePedidosSeleccionados" type="List"/> 
+    </aura:method>
+    <aura:method name="resultadosDeTransportes" action="{!c.obtenerTransportes}" access="public">
+        <aura:attribute name="picklistDeTransportesSeleccionados" type="List"/> 
+    </aura:method> 
+
+    <!-- MARKUP -->
+    <lightning:card variant="Narrow" title="MIS PEDIDOS" iconName="standard:customer_portal_users">
+        <aura:set attribute="actions"> 
+            <lightning:layout multipleRows="false">
+                <lightning:input type="date" name="input2" label="Fecha de Inicio" value="{!v.fechaInicio}" class="slds-p-right_small" onchange="{!c.handleFiltrarPorFechas}"/>
+                <lightning:input type="date" name="input2" label="Fecha de Fin" value="{!v.fechaFin}" onchange="{!c.handleFiltrarPorFechas}"/>
+            </lightning:layout>
+        </aura:set>
+
+        <p class="slds-p-horizontal_small"> 
+            <div class="slds-size_12-of-12 slds-p-around_small mc-card-filter">
+                <lightning:button variant="brand-outline" label="LIMPIAR FILTROS" title="Brand action" onclick="{!c.limpiarFiltros}" />
+
+                <lightning:layout multipleRows="false">
+                    <lightning:layoutItem class="slds-p-right_small slds-size_1-of-4" title="Claves" >
+                        <h4 class="slds-p-top_small" style="margin-bottom: 0px;">CLAVES</h4>
+                        <c:FiltrarPedidosMultiSelect padreFiltroClaves="{!this}" msname="Filtrar Claves" msoptions="{!v.msClaves}" type="clave"/>
+                        <aura:if isTrue="{!v.tipoDeClaveObj.show}">
+                            <lightning:pillContainer items="{!v.tipoDeClaveObj.body}"></lightning:pillContainer>
+                        </aura:if>
+                    </lightning:layoutItem>
+
+                    <lightning:layoutItem class="slds-p-right_small slds-size_1-of-4" title="Unidad Médica" >
+                        <h4 class="slds-p-top_small" style="margin-bottom: 0px;">UNIDAD MEDICA</h4>
+                        <c:FiltrarPedidosMultiSelect padreFiltroUnidadMedica="{!this}" msname="Filtrar UMUs" msoptions="{!v.msUMUs}" type="umu"/>
+                        <aura:if isTrue="{!v.tipoDeUMUObj.show}">
+                            <lightning:pillContainer items="{!v.tipoDeUMUObj.body}"></lightning:pillContainer>
+                        </aura:if>
+                    </lightning:layoutItem>
+
+                    <lightning:layoutItem class="slds-p-right_small slds-size_1-of-4" title="Estados" >
+                        <h4 class="slds-p-top_small" style="margin-bottom: 0px;">ESTADOS</h4>
+                        <c:FiltrarPedidosMultiSelect padreFiltroEstados="{!this}" msname="Filtrar Estados" msoptions="{!v.msEstados}" type="estado"/>
+                        <aura:if isTrue="{!v.tipoDeEstadoObj.show}">
+                            <lightning:pillContainer items="{!v.tipoDeEstadoObj.body}"></lightning:pillContainer>
+                        </aura:if>
+                    </lightning:layoutItem>
+                    
+                    <lightning:layoutItem class="slds-size_1-of-4" title="Pedidos" >
+                        <h4 class="slds-p-top_small" style="margin-bottom: 0px;">PEDIDOS</h4>
+                        <c:FiltrarPedidosMultiSelect padreFiltroPedidos="{!this}" msname="Filtrar Pedidos" msoptions="{!v.msPedidos}" type="pedido"/>
+                        <aura:if isTrue="{!v.tipoDePedidoObj.show}">
+                            <lightning:pillContainer items="{!v.tipoDePedidoObj.body}"></lightning:pillContainer>
+                        </aura:if>
+                    </lightning:layoutItem>
+                </lightning:layout>
+
+                <aura:if isTrue="{!v.showHideFiltros.mostrarmas}">
+                    <lightning:layout multipleRows="false">
+                        <lightning:layoutItem size="12" padding="around-small"> 
+                            <lightning:button variant="base" label="Mostrar más filtros" title="Base action" class="slds-float_right" onclick="{! c.handleShowHideFiltros }"/>
+                        </lightning:layoutItem>
+                    </lightning:layout>
+                </aura:if>
+
+                <aura:if isTrue="{!v.showHideFiltros.mostrarmenos}">
+                    <lightning:layout multipleRows="false"> 
+                        <lightning:layoutItem class="slds-p-top_medium slds-p-right_small slds-size_1-of-4" title="Transportes" >
+                            <h4 style="margin-bottom: 0px;">TRANSPORTES</h4>
+                            <c:FiltrarPedidosMultiSelect padreFiltroPedidos="{!this}" msname="Filtrar Transportes" msoptions="{!v.msTransportes}" type="transporte"/>
+                            <!-- <aura:if isTrue="{!v.tipoDePedidoObj.show}">
+                                <lightning:pillContainer items="{!v.tipoDePedidoObj.body}"></lightning:pillContainer>
+                            </aura:if> -->
+                        </lightning:layoutItem>
+
+                        <lightning:layoutItem class="slds-p-top_medium slds-p-right_small slds-size_1-of-4" title="Claves" >
+                            <h4 style="margin-bottom: 0px;"># DE PEDIDO</h4>
+                            <lightning:layoutItem class="slds-p-bottom_small" >
+                                <span onkeypress="{!c.keyCheck}">
+                                    <lightning:input
+                                        variant="label-hidden"
+                                        placeholder="Número de Pedido" 
+                                        type="search"
+                                        value="{!v.searchPhrase}"
+                                        onchange="{!c.onChangeSearchPhrase}" /> 
+                                </span>
+                            </lightning:layoutItem>
+                        </lightning:layoutItem>
+
+                        <lightning:layoutItem class="slds-p-top_medium slds-p-right_small slds-size_1-of-4" title="Claves" >
+                            <h4 style="margin-bottom: 0px;"># DE DELIVERY</h4>
+                            <lightning:layoutItem class="slds-p-bottom_small" >
+                                <span onkeypress="{!c.keyCheck}">
+                                    <lightning:input
+                                        variant="label-hidden"
+                                        placeholder="Número de Delivery" 
+                                        type="search"
+                                        value="{!v.deliveryNumber}"
+                                        onchange="{!c.onChangeSearchPhrase}" />
+                                    </span>
+                            </lightning:layoutItem>
+                        </lightning:layoutItem>
+
+                        <lightning:layoutItem class="slds-p-top_medium slds-size_1-of-4" title="Claves" >
+                            <h4 style="margin-bottom: 0px;"># DE REMISIÓN</h4>
+                            <lightning:layoutItem class="slds-p-bottom_small" >
+                                <lightning:input
+                                    variant="label-hidden"
+                                    placeholder="Número de Remisión" 
+                                    type="search"
+                                    value="{!v.remisionNumber}"
+                                    onchange="{!c.onChangeSearchPhrase}" />
+                            </lightning:layoutItem>
+                        </lightning:layoutItem>
+                    </lightning:layout>
+
+                    <lightning:layout multipleRows="false">
+                        <lightning:layoutItem size="12" padding="around-small"> 
+                            <lightning:button variant="base" label="Mostrar menos filtros" title="Base action" class="slds-float_right" onclick="{! c.handleShowHideFiltros }"/>
+                        </lightning:layoutItem>
+                    </lightning:layout>
+                </aura:if>
+            </div>  
+
+            <div class="slds-size_1-of-1">
+                <aura:if isTrue="{! v.isLoading }">
+                    <lightning:spinner alternativeText="Loading" />
+                </aura:if>
+                
+                <lightning:card>
+                    <lightning:datatable aura:id="table" columns="{! v.columns }" data="{! v.tableData }"
+                        onrowaction="{!c.handleClickedRow}"
+                        hideCheckboxColumn="true"
+                        keyField="Id" />
+            
+                    <div class="slds-p-around_small">
+                        <lightning:layout multipleRows="true">
+                            <lightning:layoutItem class="slds-align_absolute-center" padding="around-small" size="12">
+                                <lightning:button
+                                    label="Primero"
+                                    iconName="utility:left"
+                                    iconPosition="left"
+                                    onclick="{! c.onFirst }"
+                                    disabled="{! v.currentPageNumber == 1 }" />
+                                <lightning:button
+                                    label="Anterior"
+                                    iconName="utility:chevronleft"
+                                    iconPosition="left"
+                                    onclick="{! c.onPrev }"
+                                    disabled="{! v.currentPageNumber == 1 }" />
+                                <span class="slds-var-p-horizontal_x-small">
+                                    Página {! (v.currentPageNumber) } de {! (v.totalPages) }
+                                </span>
+                                <lightning:button
+                                    label="Siguiente"
+                                    iconName="utility:chevronright"
+                                    iconPosition="right"
+                                    onclick="{! c.onNext }"
+                                    disabled="{! v.currentPageNumber == v.totalPages }" />
+                                <lightning:button
+                                    label="Último"
+                                    iconName="utility:right"
+                                    iconPosition="right"
+                                    onclick="{! c.onLast }"        
+                                    disabled="{! v.currentPageNumber == v.totalPages }" />
+                            </lightning:layoutItem>
+                            <lightning:layoutItem class="slds-align_absolute-center" size="12">
+                                Registros: {! (v.filteredData.length) }
+                            </lightning:layoutItem>
+                        </lightning:layout>
+                    </div>
+                </lightning:card>
+            </div> 
+        </p>
+    </lightning:card>
+</aura:component>

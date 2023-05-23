@@ -1,0 +1,92 @@
+:host {
+  --green: #8AC6BF;
+  --darkGreen: #619a94;
+  --lightGray: #f9f9f9;
+  --lwc-fontFamilyHeader: 'raleway';
+}
+
+@font-face {
+  font-family: 'raleway';
+  src: url('/resource/ASSETS/ASSETS/Raleway-Regular.ttf') format('TrueType');
+}
+
+*{
+  font-family: 'raleway';
+  font-size: 0.938rem;
+}
+
+.title {
+  font-weight: bold;
+}
+
+.slds-text-heading_small {
+  font-family: 'raleway';
+}
+
+table {
+  border-top: 1px solid lightgray;
+  border-bottom: 1px solid lightgray;;
+  border-collapse: collapse;
+  overflow: hidden;
+}
+
+thead {
+  border-bottom: 1px solid lightgray;;
+}
+
+th {
+  padding: 0.625rem;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1rem;
+  font-weight: bold;
+}
+
+td {
+  padding: 0.625rem;
+  text-align: left;
+}
+
+td:nth-child(4n),
+td:last-child {
+  text-align: center;
+}
+
+tr:nth-child(even) {
+  background-color: var(--lightGray);
+}
+
+.program-combobox {
+  display: block;
+  width: 21rem;
+}
+
+.container {
+  margin-bottom: 1rem;
+}
+
+.card-content {
+  display: flex;
+  justify-content: space-between;
+  margin: 1rem 1rem 1.5rem 1rem;
+}
+
+.card-info {
+  line-height: 1.2;
+}
+
+.card-title {
+  text-transform: uppercase;
+  font-size: 0.75rem;
+}
+
+.card-value {
+  text-transform: uppercase;
+  font-weight: bold;
+  font-size: 0.875rem;
+}
+
+.slds-has-error .slds-form-element__help {
+  color: rgb(234, 0, 30);
+  text-align: left;
+}

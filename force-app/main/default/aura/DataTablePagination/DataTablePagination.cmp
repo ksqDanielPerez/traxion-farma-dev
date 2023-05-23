@@ -1,0 +1,87 @@
+<aura:component implements="forceCommunity:availableForAllPageTypes" controller="ImagesPageController">
+    
+    <aura:attribute name="allData" type="List" />
+    <aura:attribute name="filteredData" type="List" />
+    <aura:attribute name="tableData" type="List" />
+    <aura:attribute name="columns" type="Object[]" />
+    <aura:attribute name="pageSize" type="Integer" default="5" />
+    <aura:attribute name="pageSizeOptions" type="Integer[]" default="5,10,15,20,25,50,100" />
+    <aura:attribute name="currentPageNumber" type="Integer" default="1" />
+    <aura:attribute name="totalPages" type="Integer" default="1" />
+    <aura:attribute name="searchPhrase" type="String" />
+    <aura:attribute name="isLoading" type="Boolean" default="false" />
+ 
+    <aura:handler name="init" value="{! this }" action="{! c.doInit }" />
+ 
+    <aura:if isTrue="{! v.isLoading }">
+        <lightning:spinner alternativeText="Loading" />
+    </aura:if>
+ 
+    <lightning:card>
+        <div class="slds-p-around_small slds-grid slds-grid_align-spread slds-grid_vertical-align-start">
+            <div class="inline-container">
+                <span class="padding-right">
+                    <lightning:input
+                        variant="label-hidden"
+                        placeholder="Número de Pedido"
+                        type="search"
+                        value="{!v.searchPhrase}"
+                        onchange="{!c.onChangeSearchPhrase}" />
+                </span>
+                <span>
+                    <lightning:button
+                        label="Search"
+                        variant="neutral"
+                        onclick="{! c.handleSearch }" />
+                </span>
+            </div>
+        </div>
+
+        <lightning:button variant="brand" label="Clave 010000053700" title="Brand action" onclick="{!c.handleClick}" />
+        
+        <lightning:datatable
+            aura:id="table"
+            columns="{! v.columns }"
+            data="{! v.tableData }"
+            hideCheckboxColumn="true"
+            keyField="Id" />
+
+        <div class="slds-p-around_small">
+            <lightning:layout multipleRows="true">
+                <lightning:layoutItem class="slds-align_absolute-center" padding="around-small" size="12">
+                    <lightning:button
+                        label="Primero"
+                        iconName="utility:left"
+                        iconPosition="left"
+                        onclick="{! c.onFirst }"
+                        disabled="{! v.currentPageNumber == 1 }" />
+                    <lightning:button
+                        label="Anterior"
+                        iconName="utility:chevronleft"
+                        iconPosition="left"
+                        onclick="{! c.onPrev }"
+                        disabled="{! v.currentPageNumber == 1 }" />
+                    <span class="slds-var-p-horizontal_x-small">
+                        Página {! (v.currentPageNumber) } de {! (v.totalPages) }
+                    </span>
+                    <lightning:button
+                        label="Siguiente"
+                        iconName="utility:chevronright"
+                        iconPosition="right"
+                        onclick="{! c.onNext }"
+                        disabled="{! v.currentPageNumber == v.totalPages }" />
+                    <lightning:button
+                        label="Último"
+                        iconName="utility:right"
+                        iconPosition="right"
+                        onclick="{! c.onLast }"        
+                        disabled="{! v.currentPageNumber == v.totalPages }" />
+                </lightning:layoutItem>
+                <lightning:layoutItem class="slds-align_absolute-center" size="12">
+                    Registros: {! (v.filteredData.length) }
+                </lightning:layoutItem>
+            </lightning:layout>
+        </div>
+    </lightning:card>
+    
+</aura:component>

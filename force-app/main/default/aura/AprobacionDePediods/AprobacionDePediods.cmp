@@ -1,0 +1,789 @@
+<aura:component controller="AprobacionDePedidosClass" implements="forceCommunity:availableForAllPageTypes">
+
+    <!-- SELF ATTRIBUTES -->
+
+    <aura:attribute name="tabSelectorStatus" type="Object" /> 
+    <aura:attribute name="selTabId" type="String" default="Pendiente" />
+    <aura:attribute name="activeSections" type="List" default="['A', 'C']" /> 
+    <aura:attribute name="displayButtonToSubmitOrder" type="Boolean" default="false"/>
+
+    <aura:attribute name="data" type="List" />
+    <aura:attribute name="columns" type="List" /> 
+    <aura:attribute name="fechaInicio" type="Date" />
+    <aura:attribute name="fechaFin" type="Date" />   
+
+
+    <aura:attribute name="filterObj" type="Object" /> 
+
+    <aura:attribute name="msClaves" type="List" />
+    <aura:attribute name="msUMUs" type="List" />
+    <aura:attribute name="msEstados" type="List" />
+    <aura:attribute name="msPedidos" type="List" />
+    <aura:attribute name="msTransportes" type="List" />
+
+    <aura:attribute name="clavesSeleccionadas" type="List" />
+    <aura:attribute name="umusSeleccionadas" type="List" />
+    <aura:attribute name="estadosSeleccionados" type="List" />
+    <aura:attribute name="pedidosSeleccionados" type="List" />
+    <aura:attribute name="transportesSeleccionados" type="List" />
+
+    <aura:attribute name="selectedRowInformation" type="Object" /> 
+    <aura:attribute name="selectedRowItemsToApprove" type="List" />   
+
+    <aura:attribute name="oliToReject" type="Object" />   
+    <aura:attribute name="selectedRejection" type="String" />
+    <aura:attribute name="oliToModify" type="Object" />  
+    <aura:attribute name="amountToModify" type="Integer" />
+    <aura:attribute name="selectedModificationReason" type="String" /> 
+    <aura:attribute name="nonApprovalReasons" type="List" /> 
+
+    <aura:attribute name="fechasDeValidacion" type="Object" />  
+
+    <aura:attribute name="body" type="Aura.Component[]"/>
+
+    <aura:attribute name="totalInsumosAgregados" type="Integer" default="0"/>
+    <aura:attribute name="totalClavesAgregadas" type="Integer" default="0"/>  
+    
+    <!--EVENTS-->
+    <aura:registerEvent name = "limpiarParametrosDeFiltros" type = "c.limpiarParametrosDeFiltros"/> 
+
+    <!-- DEPENDANCIES -->
+    <!-- <aura:dependency resource="markup://c:FiltrarPedidosMultiSelect" type="COMPONENT" /> -->
+    <aura:dependency resource="markup://c:AprobacionDePedidosTab" type="COMPONENT" />
+    
+    <!-- HANDLERS -->
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+
+    <!--AURA METHODS-->
+    <aura:method name="resultadosDeClaves" action="{!c.obtenerClaves}" access="public">
+        <aura:attribute name="picklistDeClavesSeleccionadas" type="List"/> 
+    </aura:method>
+    <aura:method name="resultadosDeUMUs" action="{!c.obtenerUMUs}" access="public">
+        <aura:attribute name="picklistDeUMUsSeleccionadas" type="List"/> 
+    </aura:method>
+    <aura:method name="resultadosDeEstados" action="{!c.obtenerEstados}" access="public">
+        <aura:attribute name="picklistDeEstadosSeleccionados" type="List"/> 
+    </aura:method>
+    <aura:method name="resultadosDePedidos" action="{!c.obtenerPedidos}" access="public">
+        <aura:attribute name="picklistDePedidosSeleccionados" type="List"/> 
+    </aura:method>
+    <aura:method name="resultadosDeTransportes" action="{!c.obtenerTransportes}" access="public">
+        <aura:attribute name="picklistDeTransportesSeleccionados" type="List"/> 
+    </aura:method> 
+
+    <!-- MARKUP -->
+    <lightning:card variant="Narrow" title="APROBACIÓN DE PEDIDOS" iconName="standard:approval"> 
+        <aura:set attribute="actions"> 
+            <lightning:layout multipleRows="false">
+                <lightning:input type="date" label="Fecha de Inicio" value="{!v.fechaInicio}" class="slds-p-right_small" onchange="{!c.handleFiltrarPorFechas}"/>
+                <lightning:input type="date" label="Fecha de Fin" value="{!v.fechaFin}" onchange="{!c.handleFiltrarPorFechas}"/>
+            </lightning:layout>
+        </aura:set>
+
+        <lightning:tabset onselect="{!c.tabSelected}" selectedTabId="{!v.selTabId}"> 
+
+            <lightning:tab label="POR APROBAR" id="Pendiente">
+
+                <!-- <c:AprobacionDePedidosTab filterObj="{!v.filterObj}" columns="{!v.columns}" data="{!v.data}" selectedTabId="{!v.selTabId}"/> -->
+
+
+                <p class="slds-p-horizontal_small"> 
+                    <div class="slds-size_12-of-12 mc-card-filter slds-p-around_medium" style="display:none" id="divFiltros">
+                        <lightning:button variant="brand" label="LIMPIAR FILTROS" title="Brand action" onclick="{!c.limpiarFiltros}" />
+                            
+                        <lightning:layout horizontalAlign="space" verticalAlign="stretch" multipleRows="true">
+                            <lightning:layoutItem class="mc-form" size="12" flexibility="auto"  title="Claves" >
+                                <h4 class="slds-p-top_small" style="margin-bottom: 0px;">CLAVES</h4>
+                                <c:FiltrarPedidosMultiSelect padreFiltroClaves="{!this}" msname="Filtrar Claves" msoptions="{!v.msClaves}" type="clave"/>
+                            </lightning:layoutItem>
+        
+                            <lightning:layoutItem class="mc-form" size="12" flexibility="auto" title="Unidad Médica" >
+                                <h4 class="slds-p-top_small" style="margin-bottom: 0px;">UNIDAD MEDICA</h4>
+                                <c:FiltrarPedidosMultiSelect padreFiltroUnidadMedica="{!this}" msname="Filtrar UMUs" msoptions="{!v.msUMUs}" type="umu"/>
+                            </lightning:layoutItem>
+        
+                            <lightning:layoutItem class="mc-form" size="12" flexibility="auto" title="Estados" >
+                                <h4 class="slds-p-top_small" style="margin-bottom: 0px;">ESTADOS</h4>
+                                <c:FiltrarPedidosMultiSelect padreFiltroEstados="{!this}" msname="Filtrar Estados" msoptions="{!v.msEstados}" type="estado"/>
+                            </lightning:layoutItem>
+        
+                            <lightning:layoutItem class="mc-form" size="12" flexibility="auto" title="Pedidos" >
+                                <h4 class="slds-p-top_small" style="margin-bottom: 0px;">PEDIDOS</h4>
+                                <c:FiltrarPedidosMultiSelect padreFiltroPedidos="{!this}" msname="Filtrar Pedidos" msoptions="{!v.msPedidos}" type="pedido"/>
+                            </lightning:layoutItem>
+        
+                            <lightning:layoutItem class="mc-form" size="12" flexibility="auto" title="Transportes" >
+                                <h4 class="slds-p-top_small" style="margin-bottom: 0px;">TRANSPORTES</h4>
+                                <c:FiltrarPedidosMultiSelect padreFiltroTransportes="{!this}" msname="Filtrar Transportes" msoptions="{!v.msTransportes}" type="transporte"/>
+                            </lightning:layoutItem>
+        
+                            <div class="slds-align_absolute-center" >
+                                <lightning:button variant="brand-outline" label="CERRAR" title="Brand action" onclick="{!c.handleAbrirCerrarFiltros}" />
+                                <lightning:button variant="brand" label="APLICAR FILTROS" title="Brand action" onclick="{!c.handleAplicarFiltros}" />
+                            </div>
+                        </lightning:layout>
+                    </div>  
+                    <div class="slds-size_1-of-1 slds-p-bottom_small" style="display:block" id="divBtnMuestraFiltros">
+                        <lightning:button variant="brand" label="SELECCIONAR Y APLICAR FILTROS DETALLADOS" title="Brand action" onclick="{!c.handleAbrirCerrarFiltros}" />
+                    </div> 
+                    <div class="slds-size_1-of-1">
+                        <lightning:datatable columns="{!v.columns}" data="{!v.data}" keyField="Id"
+                                            onrowselection="{!c.handleRowSelection}" 
+                                            onrowaction="{!c.handleClickedRow}"
+                                            hideCheckboxColumn="true"
+                                            />  
+                    </div> 
+                </p>  
+            </lightning:tab> 
+
+            <lightning:tab label="APROBADOS" id="Aprobado">
+
+                <!-- <c:AprobacionDePedidosTab filterObj="{!v.filterObj}" columns="{!v.columns}" data="{!v.data}" selectedTabId="{!v.selTabId}"/> -->
+
+                <p class="slds-p-horizontal_small"> 
+                    <div class="slds-size_12-of-12 mc-card-filter slds-p-around_medium" style="display:none" id="divFiltros">
+                        <lightning:button variant="brand" label="LIMPIAR FILTROS" title="Brand action" onclick="{!c.limpiarFiltros}" />
+                            
+                        <lightning:layout horizontalAlign="space" verticalAlign="stretch" multipleRows="true">
+                            <lightning:layoutItem class="mc-form" size="12" flexibility="auto"  title="Claves" >
+                                <h4 class="slds-p-top_small" style="margin-bottom: 0px;">CLAVES</h4>
+                                <c:FiltrarPedidosMultiSelect padreFiltroClaves="{!this}" msname="Filtrar Claves" msoptions="{!v.msClaves}" type="clave"/>
+                            </lightning:layoutItem>
+        
+                            <lightning:layoutItem class="mc-form" size="12" flexibility="auto" title="Unidad Médica" >
+                                <h4 class="slds-p-top_small" style="margin-bottom: 0px;">UNIDAD MEDICA</h4>
+                                <c:FiltrarPedidosMultiSelect padreFiltroUnidadMedica="{!this}" msname="Filtrar UMUs" msoptions="{!v.msUMUs}" type="umu"/>
+                            </lightning:layoutItem>
+        
+                            <lightning:layoutItem class="mc-form" size="12" flexibility="auto" title="Estados" >
+                                <h4 class="slds-p-top_small" style="margin-bottom: 0px;">ESTADOS</h4>
+                                <c:FiltrarPedidosMultiSelect padreFiltroEstados="{!this}" msname="Filtrar Estados" msoptions="{!v.msEstados}" type="estado"/>
+                            </lightning:layoutItem>
+        
+                            <lightning:layoutItem class="mc-form" size="12" flexibility="auto" title="Pedidos" >
+                                <h4 class="slds-p-top_small" style="margin-bottom: 0px;">PEDIDOS</h4>
+                                <c:FiltrarPedidosMultiSelect padreFiltroPedidos="{!this}" msname="Filtrar Pedidos" msoptions="{!v.msPedidos}" type="pedido"/>
+                            </lightning:layoutItem>
+        
+                            <lightning:layoutItem class="mc-form" size="12" flexibility="auto" title="Transportes" >
+                                <h4 class="slds-p-top_small" style="margin-bottom: 0px;">TRANSPORTES</h4>
+                                <c:FiltrarPedidosMultiSelect padreFiltroTransportes="{!this}" msname="Filtrar Transportes" msoptions="{!v.msTransportes}" type="transporte"/>
+                            </lightning:layoutItem>
+        
+                            <div class="slds-align_absolute-center" >
+                                <lightning:button variant="brand-outline" label="CERRAR" title="Brand action" onclick="{!c.handleAbrirCerrarFiltros}" />
+                                <lightning:button variant="brand" label="APLICAR FILTROS" title="Brand action" onclick="{!c.handleAplicarFiltros}" />
+                            </div>
+                        </lightning:layout>
+                    </div>  
+                    <div class="slds-size_1-of-1 slds-p-bottom_small" style="display:block" id="divBtnMuestraFiltros">
+                        <lightning:button variant="brand" label="SELECCIONAR Y APLICAR FILTROS DETALLADOS" title="Brand action" onclick="{!c.handleAbrirCerrarFiltros}" />
+                    </div> 
+                    <div class="slds-size_1-of-1">
+                        <lightning:datatable columns="{!v.columns}" data="{!v.data}" keyField="Id"
+                                            onrowselection="{!c.handleRowSelection}" 
+                                            onrowaction="{!c.handleClickedRow}"
+                                            hideCheckboxColumn="true"
+                                            />  
+                    </div> 
+                </p> 
+            </lightning:tab>
+
+            <lightning:tab label="RECHAZADOS" id="Rechazado">
+                <p class="slds-p-horizontal_small"> 
+                    <div class="slds-size_12-of-12 mc-card-filter slds-p-around_medium" style="display:none" id="divFiltros">
+                        <lightning:button variant="brand" label="LIMPIAR FILTROS" title="Brand action" onclick="{!c.limpiarFiltros}" />
+                            
+                        <lightning:layout horizontalAlign="space" verticalAlign="stretch" multipleRows="true">
+                            <lightning:layoutItem class="mc-form" size="12" flexibility="auto"  title="Claves" >
+                                <h4 class="slds-p-top_small" style="margin-bottom: 0px;">CLAVES</h4>
+                                <c:FiltrarPedidosMultiSelect padreFiltroClaves="{!this}" msname="Filtrar Claves" msoptions="{!v.msClaves}" type="clave"/>
+                            </lightning:layoutItem>
+        
+                            <lightning:layoutItem class="mc-form" size="12" flexibility="auto" title="Unidad Médica" >
+                                <h4 class="slds-p-top_small" style="margin-bottom: 0px;">UNIDAD MEDICA</h4>
+                                <c:FiltrarPedidosMultiSelect padreFiltroUnidadMedica="{!this}" msname="Filtrar UMUs" msoptions="{!v.msUMUs}" type="umu"/>
+                            </lightning:layoutItem>
+        
+                            <lightning:layoutItem class="mc-form" size="12" flexibility="auto" title="Estados" >
+                                <h4 class="slds-p-top_small" style="margin-bottom: 0px;">ESTADOS</h4>
+                                <c:FiltrarPedidosMultiSelect padreFiltroEstados="{!this}" msname="Filtrar Estados" msoptions="{!v.msEstados}" type="estado"/>
+                            </lightning:layoutItem>
+        
+                            <lightning:layoutItem class="mc-form" size="12" flexibility="auto" title="Pedidos" >
+                                <h4 class="slds-p-top_small" style="margin-bottom: 0px;">PEDIDOS</h4>
+                                <c:FiltrarPedidosMultiSelect padreFiltroPedidos="{!this}" msname="Filtrar Pedidos" msoptions="{!v.msPedidos}" type="pedido"/>
+                            </lightning:layoutItem>
+        
+                            <lightning:layoutItem class="mc-form" size="12" flexibility="auto" title="Transportes" >
+                                <h4 class="slds-p-top_small" style="margin-bottom: 0px;">TRANSPORTES</h4>
+                                <c:FiltrarPedidosMultiSelect padreFiltroTransportes="{!this}" msname="Filtrar Transportes" msoptions="{!v.msTransportes}" type="transporte"/>
+                            </lightning:layoutItem>
+        
+                            <div class="slds-align_absolute-center" >
+                                <lightning:button variant="brand-outline" label="CERRAR" title="Brand action" onclick="{!c.handleAbrirCerrarFiltros}" />
+                                <lightning:button variant="brand" label="APLICAR FILTROS" title="Brand action" onclick="{!c.handleAplicarFiltros}" />
+                            </div>
+                        </lightning:layout>
+                    </div>  
+                    <div class="slds-size_1-of-1 slds-p-bottom_small" style="display:block" id="divBtnMuestraFiltros">
+                        <lightning:button variant="brand" label="SELECCIONAR Y APLICAR FILTROS DETALLADOS" title="Brand action" onclick="{!c.handleAbrirCerrarFiltros}" />
+                    </div> 
+                    <div class="slds-size_1-of-1">
+                        <lightning:datatable columns="{!v.columns}" data="{!v.data}" keyField="Id"
+                                            onrowselection="{!c.handleRowSelection}" 
+                                            onrowaction="{!c.handleClickedRow}"
+                                            hideCheckboxColumn="true"
+                                            />  
+                    </div> 
+                </p> 
+            </lightning:tab> 
+        </lightning:tabset> 
+    </lightning:card> 
+
+    <!-- MODAL WITH ORDER LINE ITEM DETAILS -->
+    <div class="slds-hide" aura:id="detallesOrden" id="detallesOrden">
+        <section role="dialog" tabindex="-1" class="slds-modal slds-fade-in-open slds-modal_medium" aria-modal="true" >
+            <div class="slds-modal__container">
+                <div class="slds-modal__content">
+                    <div class="mc-container">
+
+                        <div class="mc-header">
+                            <lightning:layout multipleRows="false">
+                                <lightning:layoutItem size="7">
+                                    <strong>{!v.selectedRowInformation.Tipo_de_Pedido__c} | {!v.selectedRowInformation.Folio_Control__c}</strong> 
+                                </lightning:layoutItem>
+                                <lightning:layoutItem size="5" class="slds-float_right">
+                                    <strong onclick="{!c.killModalDetallesOrden}" class="slds-float_right" style="cursor: pointer;" >Cerrar&nbsp;<i class="fa fa-times" aria-hidden="true"></i></strong>
+                                </lightning:layoutItem>
+                            </lightning:layout>
+                        </div>
+
+                        <div class="mc-content">
+                            <ui:scrollerWrapper class="maxScroll slds-size_1-of-1"> 
+                                <lightning:layout multipleRows="true"> 
+                                    <lightning:layoutItem size="12"> 
+                                        <lightning:layout multipleRows="false">
+                                            <lightning:layoutItem size="6"> 
+                                                <div class="slds-p-bottom_small">
+                                                    <div style="font-size:large; font-weight: bold;">{!v.selectedRowInformation.Tipo_de_Pedido__c}</div> 
+                                                    <div class="slds-text-heading_small">{!v.selectedRowInformation.Folio_Control__c} | {!v.selectedRowInformation.ID_de_Pedido__c} | {!v.selectedRowInformation.UMUName}</div>
+                                                    <div>Generado Por: {!v.selectedRowInformation.Contacto__r.Name}</div> 
+                                                </div>
+                                            </lightning:layoutItem>
+                                            <!-- <lightning:layoutItem size="6" class="slds-p-bottom_xx-small slds-p-right_small">
+                                                <lightning:button value="{!v.selectedRowInformation}" class="slds-float_right" variant="brand" label="CONTINUAR Y CONFIRMAR/RECHAZAR PEDIDO(S)" title="Brand action" onclick="{!c.handleUpdateOrder}" disabled="{!!v.displayButtonToSubmitOrder}"/>
+                                            </lightning:layoutItem> -->
+                                        </lightning:layout>
+                                        
+
+                                        <lightning:accordion allowMultipleSectionsOpen="true" class="slds-border_bottom slds-border_top" activeSectionName="{!v.activeSections}">
+                                            <lightning:accordionSection name="A" label="Información General"> 
+                                                <lightning:layout multipleRows="true" class="slds-p-bottom_xxx-small">  
+                                                    <lightning:layoutItem size="3" class="slds-p-bottom_xx-small">
+                                                        <strong>Clave Presupuestal:</strong> 
+                                                        <p>{!v.selectedRowInformation.UMU__r.Clave_Presupuestal__c}</p>
+                                                    </lightning:layoutItem> 
+                                                    <lightning:layoutItem size="3" class="slds-p-bottom_xx-small">
+                                                        <strong>Nombre de UMU:</strong> 
+                                                        <p>{!v.selectedRowInformation.UMU__r.Name}</p>
+                                                    </lightning:layoutItem> 
+                                                    <lightning:layoutItem size="3" class="slds-p-bottom_xx-small">
+                                                        <strong>Delegación:</strong> 
+                                                        <p>{!v.selectedRowInformation.UMU__r.Delegacion__c}</p>
+                                                    </lightning:layoutItem> 
+                                                    <lightning:layoutItem size="3" class="slds-p-bottom_xx-small">
+                                                        <strong>Tipo de Unidad Médica:</strong> 
+                                                        <p>{!v.selectedRowInformation.UMU__r.Tipo_UMU__c}</p>
+                                                    </lightning:layoutItem> 
+                                                    <lightning:layoutItem size="3" class="slds-p-bottom_xx-small">
+                                                        <strong>Numero de UMU:</strong> 
+                                                        <p>{!v.selectedRowInformation.UMU__r.UMU__c}</p>
+                                                    </lightning:layoutItem> 
+                                                    <lightning:layoutItem size="3" class="slds-p-bottom_xx-small">
+                                                        <strong>Fecha de Solicitud:</strong> 
+                                                        <p>{!v.selectedRowInformation.Fecha_de_Creacion__c}</p>
+                                                    </lightning:layoutItem>  
+                                                    <lightning:layoutItem size="3" class="slds-p-bottom_xx-small">
+                                                        <strong>Última Fecha de Validación:</strong> 
+                                                        <p>{!v.fechasDeValidacion.ultimaFecha}</p>
+                                                    </lightning:layoutItem>  
+                                                    <lightning:layoutItem size="3" class="slds-p-bottom_xx-small">
+                                                        <strong>Próxima Fecha de Validación:</strong> 
+                                                        <p>{!v.fechasDeValidacion.proximaFecha}</p>
+                                                    </lightning:layoutItem> 
+                                                </lightning:layout>  
+                                            </lightning:accordionSection>
+
+                                            <lightning:accordionSection name="B" label="Justificación y Documentos">
+                                                <lightning:layout multipleRows="true" class="slds-p-bottom_xxx-small"> 
+                                                    <lightning:layoutItem size="12" class="slds-p-bottom_xx-small">
+                                                        <strong>Número de Oficio: </strong> 050
+                                                    </lightning:layoutItem>
+                                                    <lightning:layoutItem size="12" class="slds-p-bottom_xx-small">
+                                                        {!v.body}
+                                                    </lightning:layoutItem>
+                                                </lightning:layout>  
+                                            </lightning:accordionSection> 
+
+                                            <lightning:accordionSection name="C" label="Control de Claves Solicitadas">
+                                                <lightning:layout multipleRows="true" class="slds-p-vertical_xxx-small slds-border_top">
+                                                    <lightning:layoutItem size="3" class="slds-p-bottom_xx-small slds-p-top_xx-small">
+                                                        <strong>Insumos Agregados:</strong> 
+                                                        <p>{!v.selectedRowInformation.Total_de_Claves_Pre_Aprobadas__c}</p>
+                                                    </lightning:layoutItem> 
+                                                    <lightning:layoutItem size="3" class="slds-p-bottom_xx-small slds-p-top_xx-small">
+                                                        <strong>Calculo de Piezas:</strong> 
+                                                        <p>{!v.selectedRowInformation.Total_de_Claves_Pre_Aprobadas__c}</p>
+                                                    </lightning:layoutItem> 
+                                                    <!-- <lightning:layoutItem size="6" class="slds-p-bottom_xx-small slds-p-top_xx-small">
+                                                        <lightning:button value="{!v.selectedRowInformation}" class="slds-float_right" variant="brand" label="CONTINUAR Y CONFIRMAR/RECHAZAR PEDIDO(S)" title="Brand action" onclick="{!c.handleUpdateOrder}" disabled="true"/>
+                                                    </lightning:layoutItem>  -->
+                                                </lightning:layout> 
+
+                                                <lightning:layoutItem size="12" class="slds-p-top_small"> 
+                                                    <strong>Búsqueda</strong>
+                                                    <lightning:input type="text" name="searchKey" label="Enter" aura:id="searchKey" onchange="{!c.searchKeyChange}" placeholder="Búsqueda por número de clave o nombre de producto" variant="label-hidden"/>
+
+                                                    
+                                                    <aura:if isTrue="{!v.tabSelectorStatus.pendiente}">
+                                                        <aura:iteration items="{!v.selectedRowItemsToApprove}" var="item"> 
+                                                            <aura:if isTrue="{!!item.EstadoTemporal}">   
+                                                                <aura:if isTrue="{!item.Product__r}">    
+                                                                    <lightning:layout multipleRows="true" class="slds-border_top">  
+                                                                        <lightning:layoutItem size="12" class="slds-p-vertical_small slds-p-right_small">
+                                                                            <lightning:layout verticalAlign="stretch" multipleRows="true">   
+                                                                                <lightning:layoutItem size="3" class="slds-p-right_small slds-p-top_small" flexibility="auto">
+                                                                                    <strong>{!item.Product__r.Product_Code_ID__c}</strong> 
+                                                                                    <p>{!item.Product__r.Name}</p> 
+                                                                                    <p class="slds-p-top_small" style="font-size: x-small;">{!item.Product__r.Description__c}</p>
+                                                                                </lightning:layoutItem>  
+
+                                                                                <lightning:layoutItem size="7" class="slds-p-right_small" flexibility="auto">
+                                                                                    <lightning:layout multipleRows="true" class="slds-p-top_small"> 
+                                                                                        <lightning:layoutItem size="3" class="slds-p-bottom_x-small"> 
+                                                                                            <strong>DPN</strong> 
+                                                                                            <p>{!item.L_mite_Mensual_DPN__c}</p> 
+                                                                                        </lightning:layoutItem>
+                                                                                        <lightning:layoutItem size="3" class="slds-p-bottom_x-small"> 
+                                                                                            <strong>VALIDADO</strong> 
+                                                                                            <p>{!item.Consumido_DPN__c}</p> 
+                                                                                        </lightning:layoutItem>
+                                                                                        <lightning:layoutItem size="3" class="slds-p-bottom_x-small"> 
+                                                                                            <strong>CANTIDAD SOLICITADA</strong> 
+                                                                                            <p>{!item.Cantidad_Solicitada__c}</p> 
+                                                                                        </lightning:layoutItem>
+                                                                                        <lightning:layoutItem size="3" class="slds-p-bottom_x-small"> 
+                                                                                            <strong>PIEZAS SOLICITADAS</strong> 
+                                                                                            <p>{!item.Cantidad_de_Piezas__c}</p> 
+                                                                                        </lightning:layoutItem>
+                                                                                        <lightning:layoutItem size="3" class="slds-p-bottom_x-small"> 
+                                                                                            <strong>EN TRÁNSITO</strong> 
+                                                                                            <p>0</p>
+                                                                                        </lightning:layoutItem>
+                                                                                        <lightning:layoutItem size="3" class="slds-p-bottom_x-small"> 
+                                                                                            <strong>EXISTENCIA EN UNIDAD</strong> 
+                                                                                            <p>{!item.Existencia_en_UMU__c}</p> 
+                                                                                        </lightning:layoutItem> 
+                                                                                        <lightning:layoutItem size="3" class="slds-p-bottom_x-small"> 
+                                                                                            <strong>DISPONIBLE EN CENADI</strong>
+                                                                                            <p>{!item.Disponible_en_CENADI__c}</p> 
+                                                                                        </lightning:layoutItem> 
+                                                                                        <lightning:layoutItem size="3" class="slds-p-bottom_x-small"> 
+                                                                                            <strong>DISPONIBLE A SOLICITAR</strong> 
+                                                                                            <p>{!item.Dispobible_a_Solicitar__c}</p> 
+                                                                                        </lightning:layoutItem> 
+                                                                                    </lightning:layout>
+                                                                                </lightning:layoutItem> 
+
+
+                                                                                <lightning:layoutItem size="2" flexibility="auto">  
+                                                                                    <aura:if isTrue="{!item.EstadoTemporal}">  
+                                                                                        <lightning:layout multipleRows="true" >
+                                                                                            <lightning:layoutItem size="12" class="slds-p-vertical_x-small">
+                                                                                                <lightning:badge label="{!item.EstadoTemporal.label}" class="{!item.EstadoTemporal.class}" iconName="{!item.EstadoTemporal.icon}"/>
+                                                                                            </lightning:layoutItem>
+                                                                                            <lightning:layoutItem size="12" class="slds-p-vertical_x-small">
+                                                                                                <lightning:button label="Editar" value="{!item}" class="slds-align_absolute-center" title="Neutral action" onclick="{!c.handleEdit}"/>
+                                                                                            </lightning:layoutItem>
+                                                                                        </lightning:layout> 
+
+                                                                                        <aura:set attribute="else"> 
+                                                                                            <lightning:layout multipleRows="true">
+                                                                                                <lightning:layoutItem size="12" padding="around-small">
+                                                                                                    <lightning:button value="{!item}" class="slds-button succes-button slds-button_stretch" label="Aprobar" title="Success" onclick="{!c.handleAprrove}"/>
+                                                                                                </lightning:layoutItem>
+                                                                                                <lightning:layoutItem size="12" padding="around-small">
+                                                                                                    <lightning:button value="{!item}" class="slds-button slds-button_outline-brand slds-button_stretch" label="Modificar" title="Brand action" onclick="{!c.handleModify}"/>
+                                                                                                </lightning:layoutItem>
+                                                                                                <lightning:layoutItem size="12" padding="around-small">
+                                                                                                    <lightning:button value="{!item}" class="slds-button destructive-button slds-button_stretch" label="Rechazar" title="Destructive action" onclick="{!c.handleReject}"/>
+                                                                                                </lightning:layoutItem> 
+                                                                                            </lightning:layout> 
+                                                                                        </aura:set> 
+                                                                                    </aura:if> 
+                                                                                </lightning:layoutItem>  
+                                                                            </lightning:layout>
+                                                                        </lightning:layoutItem> 
+                                                                    </lightning:layout> 
+                                                                </aura:if>
+                                                            </aura:if>
+                                                        </aura:iteration>
+
+                                                        <hr style="margin-top: 0px;"/>
+                                                        <aura:iteration items="{!v.selectedRowItemsToApprove}" var="item"> 
+                                                            <aura:if isTrue="{!item.EstadoTemporal}"> 
+
+                                                                <lightning:layout multipleRows="false" class="slds-p-vertical_small slds-border_bottom">
+
+                                                                    <lightning:layoutItem size="3" class="slds-p-right_small">
+                                                                        <strong class="slds-text-body_small" style="color: #858585;">{!item.Product__r.Product_Code_ID__c}</strong> 
+                                                                        <p class="slds-text-body_small" style="color: #858585;">{!item.Product__r.Name}</p> 
+                                                                        <p class="slds-p-top_small" style="font-size: x-small; color: #858585;">{!item.Product__r.Description__c}</p>
+                                                                    </lightning:layoutItem>
+
+                                                                    <lightning:layoutItem size="7" class="slds-p-right_small">
+                                                                        <lightning:layout multipleRows="true"> 
+                                                                            <lightning:layoutItem size="3" class="slds-p-right_small"> 
+                                                                                <strong class="slds-text-body_small" style="color: #858585;">CANTIDAD SOLICITADA</strong> 
+                                                                                <p class="slds-text-body_small" style="color: #858585;">{!item.Cantidad_Solicitada__c}</p> 
+                                                                            </lightning:layoutItem>
+
+                                                                            <lightning:layoutItem size="3" class="slds-p-right_small"> 
+                                                                                <strong class="slds-text-body_small" style="color: #858585;">CANTIDAD SOLICITADA</strong> 
+                                                                                <p class="slds-text-body_small" style="color: #858585;">{!item.Cantidad_Solicitada__c}</p> 
+                                                                            </lightning:layoutItem>
+
+                                                                            <lightning:layoutItem size="3" class="slds-p-right_small"> 
+                                                                                <strong class="slds-text-body_small" style="color: #858585;">CANTIDAD SOLICITADA</strong> 
+                                                                                <p class="slds-text-body_small" style="color: #858585;">{!item.Cantidad_Solicitada__c}</p> 
+                                                                            </lightning:layoutItem>
+
+                                                                            <lightning:layoutItem size="3" class="slds-p-right_small"> 
+                                                                                <strong class="slds-text-body_small" style="color: #858585;">CANTIDAD SOLICITADA</strong> 
+                                                                                <p class="slds-text-body_small" style="color: #858585;">{!item.Cantidad_Solicitada__c}</p> 
+                                                                            </lightning:layoutItem>
+                                                                        </lightning:layout>
+                                                                    </lightning:layoutItem>
+
+                                                                    <lightning:layoutItem size="2" class="slds-p-right_small">
+                                                                        <!-- <strong class="slds-text-body_small slds-align_absolute-center" style="color: #858585; text-transform:uppercase">{!item.EstadoTemporal.label}</strong>  -->
+                                                                        <lightning:badge label="{!item.EstadoTemporal.label}" class="slds-badge_inverse slds-align_absolute-center" iconName="{!item.EstadoTemporal.icon}"/>
+                                                                    </lightning:layoutItem>
+                                                                </lightning:layout>
+                                                            </aura:if>
+                                                        </aura:iteration>
+                                                    </aura:if>
+                                                    
+                                                    <aura:if isTrue="{!v.tabSelectorStatus.aprobado}">
+                                                        <hr style="margin-top: 0px;"/>
+                                                        <aura:iteration items="{!v.selectedRowItemsToApprove}" var="item"> 
+                                                            <aura:if isTrue="{!item.EstadoTemporal.value}"> 
+                                                                <lightning:layout multipleRows="false" class="slds-p-vertical_small slds-border_bottom">
+                                                                    <lightning:layoutItem size="3" class="slds-p-right_small">
+                                                                        <strong>{!item.Product__r.Product_Code_ID__c}</strong> 
+                                                                        <p>{!item.Product__r.Name}</p> 
+                                                                        <p class="slds-p-top_small" style="font-size: x-small;">{!item.Product__r.Description__c}</p>
+                                                                    </lightning:layoutItem>
+
+                                                                    <lightning:layoutItem size="7" class="slds-p-right_small">
+                                                                        <lightning:layout multipleRows="true"> 
+                                                                            <lightning:layoutItem size="3" class="slds-p-right_small"> 
+                                                                                <strong>CANTIDAD SOLICITADA</strong> 
+                                                                                <p>{!item.Cantidad_Solicitada__c}</p> 
+                                                                            </lightning:layoutItem>
+
+                                                                            <lightning:layoutItem size="3" class="slds-p-right_small"> 
+                                                                                <strong>CANTIDAD SOLICITADA</strong> 
+                                                                                <p>{!item.Cantidad_Solicitada__c}</p> 
+                                                                            </lightning:layoutItem>
+
+                                                                            <lightning:layoutItem size="3" class="slds-p-right_small"> 
+                                                                                <strong>CANTIDAD SOLICITADA</strong> 
+                                                                                <p>{!item.Cantidad_Solicitada__c}</p> 
+                                                                            </lightning:layoutItem>
+
+                                                                            <lightning:layoutItem size="3" class="slds-p-right_small"> 
+                                                                                <strong>CANTIDAD SOLICITADA</strong> 
+                                                                                <p>{!item.Cantidad_Solicitada__c}</p> 
+                                                                            </lightning:layoutItem>
+                                                                        </lightning:layout>
+                                                                    </lightning:layoutItem>
+
+                                                                    <lightning:layoutItem size="2" class="slds-p-right_small">
+                                                                        <!-- <strong class="slds-text-body_small slds-align_absolute-center" style="color: #858585; text-transform:uppercase">{!item.EstadoTemporal.label}</strong>  -->
+                                                                        <lightning:badge label="{!item.EstadoTemporal.label}" class="{!item.EstadoTemporal.class}" iconName="{!item.EstadoTemporal.icon}"/>
+                                                                    </lightning:layoutItem>
+                                                                </lightning:layout>
+                                                            </aura:if>
+                                                        </aura:iteration>
+                                                        <aura:if isTrue="{!v.selectedRowItemsToApprove}">
+                                                            <div class="slds-m-top_medium">
+                                                                <strong>Resto de Claves del Pedido</strong>
+                                                                <aura:iteration items="{!v.selectedRowItemsToApprove}" var="item"> 
+                                                                    <aura:if isTrue="{!!item.EstadoTemporal.value}">
+                                                                        <lightning:layout multipleRows="false" class="slds-p-vertical_small slds-border_bottom">
+                                                                            <lightning:layoutItem size="3" class="slds-p-right_small">
+                                                                                <strong class="slds-text-body_small" style="color: #858585;">{!item.Product__r.Product_Code_ID__c}</strong> 
+                                                                                <p class="slds-text-body_small" style="color: #858585;">{!item.Product__r.Name}</p> 
+                                                                                <p class="slds-p-top_small" style="font-size: x-small; color: #858585;">{!item.Product__r.Description__c}</p>
+                                                                            </lightning:layoutItem>
+        
+                                                                            <lightning:layoutItem size="7" class="slds-p-right_small">
+                                                                                <lightning:layout multipleRows="true"> 
+                                                                                    <lightning:layoutItem size="3" class="slds-p-right_small"> 
+                                                                                        <strong class="slds-text-body_small" style="color: #858585;">CANTIDAD SOLICITADA</strong> 
+                                                                                        <p class="slds-text-body_small" style="color: #858585;">{!item.Cantidad_Solicitada__c}</p> 
+                                                                                    </lightning:layoutItem>
+        
+                                                                                    <lightning:layoutItem size="3" class="slds-p-right_small"> 
+                                                                                        <strong class="slds-text-body_small" style="color: #858585;">CANTIDAD SOLICITADA</strong> 
+                                                                                        <p class="slds-text-body_small" style="color: #858585;">{!item.Cantidad_Solicitada__c}</p> 
+                                                                                    </lightning:layoutItem>
+        
+                                                                                    <lightning:layoutItem size="3" class="slds-p-right_small"> 
+                                                                                        <strong class="slds-text-body_small" style="color: #858585;">CANTIDAD SOLICITADA</strong> 
+                                                                                        <p class="slds-text-body_small" style="color: #858585;">{!item.Cantidad_Solicitada__c}</p> 
+                                                                                    </lightning:layoutItem>
+        
+                                                                                    <lightning:layoutItem size="3" class="slds-p-right_small"> 
+                                                                                        <strong class="slds-text-body_small" style="color: #858585;">CANTIDAD SOLICITADA</strong> 
+                                                                                        <p class="slds-text-body_small" style="color: #858585;">{!item.Cantidad_Solicitada__c}</p> 
+                                                                                    </lightning:layoutItem>
+                                                                                </lightning:layout>
+                                                                            </lightning:layoutItem>
+        
+                                                                            <lightning:layoutItem size="2" class="slds-p-right_small">
+                                                                                
+                                                                                <aura:if isTrue="{!item.EstadoTemporal}">
+                                                                                    <lightning:badge label="{!item.EstadoTemporal.label}" class="slds-badge_inverse slds-align_absolute-center" iconName="{!item.EstadoTemporal.icon}"/>
+                                                                                    <aura:set attribute="else">
+                                                                                        <lightning:badge label="Pendiente" class="slds-badge_inverse slds-align_absolute-center" iconName="utility:clock"/>
+                                                                                    </aura:set>
+                                                                                </aura:if>
+                                                                            </lightning:layoutItem>
+                                                                        </lightning:layout>
+                                                                    </aura:if>
+                                                                </aura:iteration>
+                                                            </div>
+                                                        </aura:if>
+                                                    </aura:if>
+
+                                                    <aura:if isTrue="{!v.tabSelectorStatus.rechazado}">
+                                                        <hr style="margin-top: 0px;"/>
+                                                        <aura:iteration items="{!v.selectedRowItemsToApprove}" var="item"> 
+                                                            <aura:if isTrue="{!item.EstadoTemporal.value}"> 
+
+                                                                <lightning:layout multipleRows="false" class="slds-p-vertical_small slds-border_bottom">
+
+                                                                    <lightning:layoutItem size="3" class="slds-p-right_small">
+                                                                        <strong>{!item.Product__r.Product_Code_ID__c}</strong> 
+                                                                        <p>{!item.Product__r.Name}</p> 
+                                                                        <p>{!item.Product__r.Description__c}</p>
+                                                                    </lightning:layoutItem>
+
+                                                                    <lightning:layoutItem size="7" class="slds-p-right_small">
+                                                                        <lightning:layout multipleRows="true"> 
+                                                                            <lightning:layoutItem size="3" class="slds-p-right_small"> 
+                                                                                <strong>CANTIDAD SOLICITADA</strong> 
+                                                                                <p>{!item.Cantidad_Solicitada__c}</p> 
+                                                                            </lightning:layoutItem>
+
+                                                                            <lightning:layoutItem size="3" class="slds-p-right_small"> 
+                                                                                <strong>CANTIDAD SOLICITADA</strong> 
+                                                                                <p>{!item.Cantidad_Solicitada__c}</p> 
+                                                                            </lightning:layoutItem>
+
+                                                                            <lightning:layoutItem size="3" class="slds-p-right_small"> 
+                                                                                <strong>CANTIDAD SOLICITADA</strong> 
+                                                                                <p>{!item.Cantidad_Solicitada__c}</p> 
+                                                                            </lightning:layoutItem>
+
+                                                                            <lightning:layoutItem size="3" class="slds-p-right_small"> 
+                                                                                <strong>CANTIDAD SOLICITADA</strong> 
+                                                                                <p>{!item.Cantidad_Solicitada__c}</p> 
+                                                                            </lightning:layoutItem>
+                                                                        </lightning:layout>
+                                                                    </lightning:layoutItem>
+
+                                                                    <lightning:layoutItem size="2" class="slds-p-right_small">
+                                                                        <!-- <strong class="slds-text-body_small slds-align_absolute-center" style="color: #858585; text-transform:uppercase">{!item.EstadoTemporal.label}</strong>  -->
+                                                                        <lightning:badge label="{!item.EstadoTemporal.label}" class="{!item.EstadoTemporal.class}" iconName="{!item.EstadoTemporal.icon}"/>
+                                                                    </lightning:layoutItem>
+                                                                </lightning:layout>
+                                                            </aura:if>
+                                                        </aura:iteration>
+
+                                                        <aura:if isTrue="{!v.selectedRowItemsToApprove}">
+                                                            <div class="slds-m-top_medium">
+                                                                <strong>Resto de Claves del Pedido</strong>
+                                                                <aura:iteration items="{!v.selectedRowItemsToApprove}" var="item"> 
+                                                                    <aura:if isTrue="{!!item.EstadoTemporal.value}">
+                                                                        <lightning:layout multipleRows="false" class="slds-p-vertical_small slds-border_bottom">
+                                                                            <lightning:layoutItem size="3" class="slds-p-right_small">
+                                                                                <strong class="slds-text-body_small" style="color: #858585;">{!item.Product__r.Product_Code_ID__c}</strong> 
+                                                                                <p class="slds-text-body_small" style="color: #858585;">{!item.Product__r.Name}</p> 
+                                                                                <p class="slds-p-top_small" style="font-size: x-small; color: #858585;">{!item.Product__r.Description__c}</p>
+                                                                            </lightning:layoutItem>
+        
+                                                                            <lightning:layoutItem size="7" class="slds-p-right_small">
+                                                                                <lightning:layout multipleRows="true"> 
+                                                                                    <lightning:layoutItem size="3" class="slds-p-right_small"> 
+                                                                                        <strong class="slds-text-body_small" style="color: #858585;">CANTIDAD SOLICITADA</strong> 
+                                                                                        <p class="slds-text-body_small" style="color: #858585;">{!item.Cantidad_Solicitada__c}</p> 
+                                                                                    </lightning:layoutItem>
+        
+                                                                                    <lightning:layoutItem size="3" class="slds-p-right_small"> 
+                                                                                        <strong class="slds-text-body_small" style="color: #858585;">CANTIDAD SOLICITADA</strong> 
+                                                                                        <p class="slds-text-body_small" style="color: #858585;">{!item.Cantidad_Solicitada__c}</p> 
+                                                                                    </lightning:layoutItem>
+        
+                                                                                    <lightning:layoutItem size="3" class="slds-p-right_small"> 
+                                                                                        <strong class="slds-text-body_small" style="color: #858585;">CANTIDAD SOLICITADA</strong> 
+                                                                                        <p class="slds-text-body_small" style="color: #858585;">{!item.Cantidad_Solicitada__c}</p> 
+                                                                                    </lightning:layoutItem>
+        
+                                                                                    <lightning:layoutItem size="3" class="slds-p-right_small"> 
+                                                                                        <strong class="slds-text-body_small" style="color: #858585;">CANTIDAD SOLICITADA</strong> 
+                                                                                        <p class="slds-text-body_small" style="color: #858585;">{!item.Cantidad_Solicitada__c}</p> 
+                                                                                    </lightning:layoutItem>
+                                                                                </lightning:layout>
+                                                                            </lightning:layoutItem>
+        
+                                                                            <lightning:layoutItem size="2" class="slds-p-right_small">
+                                                                                
+                                                                                <aura:if isTrue="{!item.EstadoTemporal}">
+                                                                                    <lightning:badge label="{!item.EstadoTemporal.label}" class="slds-badge_inverse slds-align_absolute-center" iconName="{!item.EstadoTemporal.icon}"/>
+                                                                                    <aura:set attribute="else">
+                                                                                        <lightning:badge label="Pendiente" class="slds-badge_inverse slds-align_absolute-center" iconName="utility:clock"/>
+                                                                                    </aura:set>
+                                                                                </aura:if>
+                                                                            </lightning:layoutItem>
+                                                                        </lightning:layout>
+                                                                    </aura:if>
+                                                                </aura:iteration>
+                                                            </div>
+                                                        </aura:if>
+
+                                                    </aura:if>
+                                                </lightning:layoutItem>
+                                            </lightning:accordionSection> 
+
+                                            
+
+
+                                        </lightning:accordion>
+                                    </lightning:layoutItem>
+                                </lightning:layout> 
+                            </ui:scrollerWrapper> 
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- MODAL RECHAZO -->
+    <div class="slds-hide" aura:id="rechazoOrderLineItem" id="rechazoOrderLineItem">
+        <section role="dialog" tabindex="-1" class="slds-modal slds-fade-in-open slds-modal_small" aria-modal="true" >
+            <div class="slds-modal__container">
+                <div class="slds-modal__content">
+                    <div class="mc-container">
+                        <div class="mc-header">
+                            <lightning:layout multipleRows="false">
+                                <lightning:layoutItem size="7">
+                                    <strong>RECHAZO | {!v.oliToReject.Product__r.Product_Code_ID__c}</strong> 
+                                </lightning:layoutItem>
+                                <lightning:layoutItem size="5" class="slds-float_right">
+                                    <strong onclick="{!c.killModalRechazoOLI}" class="slds-float_right" style="cursor: pointer;" >Cerrar&nbsp;<i class="fa fa-times" aria-hidden="true"></i></strong>
+                                </lightning:layoutItem>
+                            </lightning:layout>
+                        </div>
+                        <div class="mc-content"> 
+                            <ui:scrollerWrapper class="maxScroll slds-size_1-of-1">  
+                                <aura:if isTrue="{!v.oliToReject}"> 
+                                    <lightning:layout multipleRows="true">
+                                        <lightning:layoutItem size="12" padding="around-small">
+                                            <strong>{!v.oliToReject.Product__r.Product_Code_ID__c}</strong> 
+                                            <p>{!v.oliToReject.Product__r.Name}</p> 
+                                            <p class="slds-p-top_small" style="font-size: x-small;">{!v.oliToReject.Product__r.Description__c}</p>
+                                        </lightning:layoutItem>  
+                                        <lightning:layoutItem padding="around-small" size="12">
+                                            <strong>Selecciona un motivo de rechazo</strong> 
+                                            <lightning:combobox name="progress" label="Selecciona un Motivo" value="inProgress" placeholder="Selecciona un Motivo" options="{!v.nonApprovalReasons}" onchange="{!c.handleRejectPicklist}" required="true" variant="label-hidden"/>
+                                        </lightning:layoutItem>
+                                        <lightning:layoutItem padding="around-small" size="6">
+                                            <lightning:button value="{!v.oliToReject.Id}" variant="brand-outline" class="slds-float_right" label="Cancelar" title="Brand action" onclick="{!c.killModalRechazoOLI}" />
+                                        </lightning:layoutItem>
+                                        <lightning:layoutItem padding="around-small" size="6">
+                                            <lightning:button value="{!v.oliToReject}" variant="brand" class="slds-float_left" label="Continuar" title="Brand action" onclick="{!c.handleRejectContinueClick}" />
+                                        </lightning:layoutItem>
+                                    </lightning:layout> 
+                                </aura:if>  
+                            </ui:scrollerWrapper>  
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- MODAL MODIFICACION -->
+    <div class="slds-hide" aura:id="modificaOrderLineItem" id="modificaOrderLineItem">
+        <section role="dialog" tabindex="-1" class="slds-modal slds-fade-in-open slds-modal_small" aria-modal="true" >
+            <div class="slds-modal__container">
+                <div class="slds-modal__content">
+                    <div class="mc-container">
+                        <div class="mc-header">
+                            <lightning:layout multipleRows="false">
+                                <lightning:layoutItem size="7">
+                                    <strong>MODIFICACION</strong> 
+                                </lightning:layoutItem>
+                                <lightning:layoutItem size="5" class="slds-float_right">
+                                    <strong onclick="{!c.killModalModificaOLI}" class="slds-float_right" style="cursor: pointer;" >Cerrar&nbsp;<i class="fa fa-times" aria-hidden="true"></i></strong>
+                                </lightning:layoutItem>
+                            </lightning:layout>
+                        </div>
+                        <div class="mc-content"> 
+                            <ui:scrollerWrapper class="maxScroll slds-size_1-of-1">  
+                                <aura:if isTrue="{!v.oliToModify}"> 
+                                    <lightning:layout multipleRows="true">
+
+                                        <lightning:layoutItem size="12" padding="around-small">
+                                            <strong>{!v.oliToModify.Product__r.Product_Code_ID__c}</strong> 
+                                            <p>{!v.oliToModify.Product__r.Name}</p> 
+                                            <p class="slds-p-top_small" style="font-size: x-small;">{!v.oliToModify.Product__r.Description__c}</p>
+                                        </lightning:layoutItem>  
+
+                                        <lightning:layoutItem padding="around-small" size="6">
+                                            <strong>Cantidad Solicitada</strong> 
+                                            <p>{!v.oliToModify.Cantidad_Solicitada__c}</p> 
+                                        </lightning:layoutItem>
+
+                                        <lightning:layoutItem padding="around-small" size="6">
+                                            <strong>Cantidad a Aprobar</strong> 
+                                            <lightning:input type="number" name="input1" value="{!v.amountToModify}" label="Enter a number" variant="label-hidden" min="1" max="{!v.oliToModify.Cantidad_Solicitada__c}" required="true"/>
+                                        </lightning:layoutItem>
+
+                                        <lightning:layoutItem padding="around-small" size="12">
+                                            <lightning:combobox name="progress" label="Selecciona un Motivo" value="inProgress" placeholder="Selecciona un Motivo" options="{!v.nonApprovalReasons}" onchange="{!c.handleModifyPicklist}" required="true"/>
+                                        </lightning:layoutItem>
+
+                                        <lightning:layoutItem padding="around-small" size="6">
+                                            <lightning:button variant="brand-outline" class="slds-float_right" label="Cancelar" title="Brand action" onclick="{!c.killModalModificaOLI}" />
+                                        </lightning:layoutItem>
+                                        <lightning:layoutItem padding="around-small" size="6">
+                                            <lightning:button value="{!v.oliToModify}" variant="brand" class="slds-float_left" label="Continuar" title="Brand action" onclick="{!c.handleModifyContinueClick}" />
+                                        </lightning:layoutItem>
+                                    </lightning:layout> 
+                                </aura:if>  
+                            </ui:scrollerWrapper>  
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+
+</aura:component>

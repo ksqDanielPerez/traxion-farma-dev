@@ -1,0 +1,99 @@
+<template>
+  <div class="container">
+    <div class="slds-p-around_none slds-m-top_x-small slds-m-bottom_medium slds-m-horizontal_none">
+      <lightning-layout multiple-rows>
+        <lightning-layout-item size="4" padding="around-small">
+          <!-- <c-pedido-ordinario></c-pedido-ordinario> -->
+          <div class="custom-box slds-box slds-p-around_medium slds-text-align_center">
+            <div class="grid" style={pedidoOrdinarioStyle} onclick={seleccionarPedidoOrdinario}>
+              <div>
+                <lightning-icon size="small" icon-name="utility:fulfillment_order" title="fulfillment_order ">
+                </lightning-icon><span class="title">Ordinario</span>
+                <template if:false={isPedidoDay}>
+                  <span class="no-disponible">No disponible</span>
+                </template>
+
+                <!-- Aqui esta la habilitacion de solicitar pedidos ordinarios -->
+              </div>
+              
+              <template if:false={isPedidoDay}>
+                <small class="pedidos-generados"><b>{pedidos}</b></small>
+                <small><b>Próxima fecha de apertura</b></small>
+                <small>{fecha}</small>
+                <small>{hora}</small>
+              </template>
+
+              <template if:true={isPedidoDay}>
+                <button class="calendario-button" onclick={handleSolicitarPedidoOrdinario}>
+                  Solicitar Pedido
+                </button>
+              </template>
+
+              <div>
+                <!-- Aqui esta el calendario -->
+                <!--  -->
+                <button class="calendario-button" onclick={handleCalendario}>
+                  Calendario
+                </button>
+              </div>
+            </div>
+          </div>
+        </lightning-layout-item>
+        <lightning-layout-item size="4" padding="around-small">
+          <div class="custom-box slds-box slds-p-around_medium slds-text-align_center">
+            <!-- <c-pedido-no-ordinario></c-pedido-no-ordinario> -->
+            <div class="custom-box slds-box slds-p-around_medium slds-text-align_center">
+              <div class="grid" style={pedidoNoOrdinarioStyle} onclick={seleccionarPedidoNoOrdinario}>
+                <div>
+                  <lightning-icon size="small" icon-name="utility:fulfillment_order" title="fulfillment_order ">
+                  </lightning-icon><span class="title">No Ordinario</span>
+                </div>
+                <small class="pedidos-generados"><b>{pedidos}</b></small>
+                <small class="white">...</small>
+                <small class="white">...</small>
+                <div>
+                  <button class="calendario-button" onclick={handleSolicitarPedidosNoOrdinario}>
+                    Solicitar Pedido
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </lightning-layout-item>
+        <lightning-layout-item size="4" padding="around-small">
+          <div class="custom-box slds-box slds-p-around_medium slds-text-align_center">
+            <div class="custom-box slds-box slds-p-around_medium slds-text-align_center">
+              <div class="grid" style={pedidoEspecialStyle} onclick={seleccionarPedidoEspecial}>
+                <div>
+                  <lightning-icon size="small" icon-name="utility:fulfillment_order" title="fulfillment_order ">
+                  </lightning-icon>
+                  <span class="title">Programas Especiales</span>
+                </div>
+                <small class="pedidos-generados"><b>{pedidos}</b></small>
+                <small class="white"><b>...</b></small>
+                <small class="white">...</small>
+                <div>
+                  <template if:true={isProgramasEspeciales}>
+                    <button class="calendario-button" onclick={handlePedidoEspeciales}>
+                      Solicitar Pedido
+                    </button>
+                  </template>
+                </div>
+              </div>
+            </div>
+          </div>
+        </lightning-layout-item>
+      </lightning-layout>
+    </div>
+  </div>
+  <lightning-layout>
+    <lightning-layout-item size="12" padding="around-small">
+      <template if:true={isCalendar}>
+        <div class="calendar">
+          <c-avonni-calendar value={value} selection-mode="multiple" >
+          </c-avonni-calendar>
+        </div>
+      </template>
+    </lightning-layout-item>
+  </lightning-layout>
+</template>

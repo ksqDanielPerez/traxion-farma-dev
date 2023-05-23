@@ -1,0 +1,6 @@
+<aura:event type="APPLICATION" description="Limpia los valores seleccionados de multipicklist seleccionado">
+    <aura:attribute name="clearClaves" type="Boolean" />
+    <aura:attribute name="clearDelegaciones" type="Boolean" />
+    <aura:attribute name="clearUMUs" type="Boolean" />
+    <aura:attribute name="clearPedidos" type="Boolean" />
+</aura:event>

@@ -1,0 +1,65 @@
+.THIS .succes-button{ 
+    --slds-c-button-color-border:rgb(41, 145, 41);
+    color:rgb(41, 145, 41); 
+}
+
+.THIS .destructive-button{ 
+    --slds-c-button-color-border:red;
+    color:red; 
+} 
+
+.THIS .slds-badge__icon{
+    color:white;
+}
+
+.THIS .mc-container {
+    background-color: #eaeaea;
+    padding: 20px;
+    margin: auto;
+    border-radius: 0px; 
+}
+
+.THIS .mc-container .mc-header {
+    background: -moz-linear-gradient(0% 50% 0deg, #1479bb 0.02%, #0091e2 100%);
+    background: -webkit-linear-gradient(0deg, #1479bb 0.02%, #0091e2 100%);
+    background: -webkit-gradient(linear, 0% 50%, 100% 50%, color-stop(0.0002, #1479bb), color-stop(1, #0091e2));
+    background: -o-linear-gradient(0deg, #1479bb 0.02%, #0091e2 100%);
+    background: -ms-linear-gradient(0deg, #1479bb 0.02%, #0091e2 100%);
+    -ms-filter: "progid:DXImageTransform.Microsoft.gradient(startColorstr='#1479bb', endColorstr='#${$primary-alt}' ,GradientType=0)";
+    background: linear-gradient(90deg, #1479bb 0.02%, #0091e2 100%);
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#1479bb', endColorstr='#0091e2', GradientType=1);
+    padding: 10px;
+    padding-left: 20px;
+    margin-top: -20px;
+    margin-left: -20px;
+    margin-right: -20px;
+    margin-bottom: 20px;
+    color: #ffffff;
+    font-size: .85rem;
+    display: block;
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px; 
+}
+
+.THIS.blur-main-cmp {
+    filter: blur(5px);
+}
+
+.THIS.blur-detail-cmp {
+    filter: blur(5px);
+}
+
+.THIS .slds-pill__remove {
+    display: none !important;
+}
+
+.THIS .mc-card-filter { 
+    box-shadow: 0 0 2px rgba(0, 0, 0, 0.1);
+    -webkit-box-shadow: 0 0 2px rgba(0, 0, 0, 0.1);
+    -moz-box-shadow: 0 0 2px rgba(0, 0, 0, 0.1);
+    border-radius: 4px; 
+    border-style: solid;
+    border-width: 1px; 
+    border-color: var(--slds-g-color-border-base-4, var(--lwc-colorBorderInput,#D4D4D4));
+    margin-bottom: 1rem;
+}

@@ -1,0 +1,249 @@
+<!-- Page: -->
+<apex:page controller="controladorOrden" renderAs="pdf">
+    <h4 style="text-align: center;">CONFIRMACIÓN DE PEDIDOS</h4>
+    <table style="font-family: sans-serif; font-size: 12px; margin-top: 70px">
+        <tr>
+            <td style="font-weight: 600;">ALMACENAJE Y DISTRIBUCIÓN AVIOR, S.A. DE C.V. </td>
+            <td style="text-align: right; padding-left: 250px "></td>
+            <td style="padding-right: 30px">FOLIO DE PEDIDO</td>
+        </tr>
+        <tr>
+            <td style="font-weight: 600;">RFC: ADA000803GM5 </td>
+            <td></td>
+            <td style="text-align: right; font-weight: 600; padding-right: 57px">{!orden.Folio_del_Pedido__c}</td>
+        </tr>
+        <tr>
+            <td style="font-weight: 600;">Carretera México Querétaro, KM 187+800,</td>
+        </tr>
+        <tr>
+            <td style="font-weight: 600;">Col. Calamanda, El Marqués, Querétaro, C.P. 76247.</td>
+            <td style="text-align: right; padding-right: 20px">FOLIO DE ENTREGA </td>
+            <td style="text-align: right; padding-right: 40px">TIPO DE PEDIDO</td>
+        </tr>
+        <tr>
+            <td></td>
+            <td style="text-align: right; font-weight: 600; padding-right: 30px">{!idSubalmacen} - 0410429911</td>
+            <td style="font-weight: 600; padding-left: 8px">{!orden.Tipo_de_Pedido__c}</td>
+        </tr>
+    </table>
+    
+    <span style="font-size: 16px">ALMACÉN</span>
+    
+    <table style="font-family: sans-serif; font-size: 12px; margin-top:20px">
+        <tr>
+            <td style="font-weight: 600;">Centro Nacional de Distribución</td>
+            <td style="text-align: right; padding-left: 140px">FOLIO DE REMISIÓN </td>
+            <td style="text-align: right; padding-left: 10px; padding-right: 70px">FECHA DE CONFIRMACIÓN</td>
+        </tr>
+        <tr>
+            <td style="font-weight: 600; width: 270px">Km 27.5 Carretera Lago de Guadalupe No 2-E</td>
+            <td style="text-align: right; font-weight: 600; padding-right: 10px">0429911</td>
+            <td style="font-weight: 600; padding-left: 60px">{!orden.CreatedDate}</td>
+        </tr>
+        <tr>
+            <td style="font-weight: 600">Colonia San Pedro Barrientos </td>
+        </tr>
+        <tr>
+            <td style="font-weight: 600">Municipio de Tlalnepantla C.P. 54010</td>
+        </tr>
+        
+    </table>
+    
+    <table style="font-family: sans-serif; font-size: 12px; margin-top: 20px">
+        <tr>
+            <td style="width: 200px">TIPO DE UNIDAD MÉDICA</td>
+            <td style="padding-left: 10px; width: 200px">CLAVE PRESUPUESTAL</td>
+            <td style="padding-left: 10px;" >NÚMERO DE UNIDAD MÉDICA</td>
+            <td style="padding-left: 10px;">NOMBRE DE UNIDAD MÉDICA</td>
+        </tr>
+        <tr>
+            <td style="width: 200px; font-weight: 600">{!umu.Tipo_UMU__c}</td>
+            <td style="padding-left: 10px; width: 200px; font-weight: 600">{!umu.Clave_Presupuestal__c}</td>
+            <td style="padding-left: 10px; font-weight: 600">{!umu.UMU__c}</td>
+            <td style="padding-left: 10px; font-weight: 600">{!umu.Name}</td>
+        </tr>
+        
+    </table>
+    
+    <table style="font-family: sans-serif; font-size: 12px; margin-top: 20px">
+        <tr>
+            <td style="width: 200px">SOLICITANTE</td>
+            <td style="padding-left: 10px; width: 200px">DELEGACIÓN</td>
+            <td style="padding-left: 10px;">LUGAR DE ENTREGA</td>
+        </tr>
+        <tr>
+            <td style="width: 200px; font-weight: 600">{!contact.Name}</td>
+            <td style="padding-left: 10px; width: 200px; font-weight: 600">{!umu.Delegacion__c}</td>
+            <td style="padding-left: 10px; font-weight: 600" >DR. IGNACIO CHAVEZ CUESTA BARRIOS No.33 EJIDO LA CANTERA, Nayarit. CP. 6350</td>
+        </tr>
+        
+    </table>
+    
+    <table style="font-family: sans-serif; font-size: 12px; margin-top: 40px">
+        <tr style="background-color:#D8D335">
+            <td style="padding-left: 5px; padding-right: 5px; width: 120px">Clave</td>
+            <td style="padding-left: 10px; width: 350px">Descripción</td>
+            <td style="padding-left: 10px; text-align: center; padding-left: 5px; padding-right: 5px">Unidad</td>
+            <td style="padding-left: 10px; text-align: center; padding-left: 5px; padding-right: 5px">Piezas Solicitadas</td>
+            <td style="padding-left: 10px; text-align: center; padding-left: 5px; padding-right: 5px">Piezas Confirmadas</td>
+        </tr> 
+        <apex:repeat value="{!productos}" var="producto">
+            <tr>
+                <td>{!producto.Product_Code_ID__c}</td>
+                <td>{!producto.Name}</td>
+                <td style="text-align: center; padding-left: 4px; padding-right: 5px">UN</td>
+                <apex:repeat value="{!producto.Order_Line_Items__r}" var="orderLineItem">
+                    <td style="text-align: center; padding-left: 4px; padding-right: 5px">{!orderLineItem.Cantidad_Solicitada__c}</td>
+                    <td style="text-align: center; padding-left: 4px; padding-right: 5px">{!IF(ISNULL(orderLineItem.Cantidad_Aprobada__c), 0, orderLineItem.Cantidad_Aprobada__c)}</td>
+                </apex:repeat>
+            </tr>   
+        </apex:repeat>   
+    </table>
+    
+    <table style="font-family: sans-serif; font-size: 12px; margin-top: 20px;  border-top: 1px solid black; ">
+        <tr>
+            <td style="font-weight: 600">Total de claves solicitadas</td>
+            <td style="padding-left: 20px; font-weight: 600">{!totalPiezasSolicitadas}</td>
+            <td style="text-align: right; padding-left: 300px; font-weight: 600">Total de Piezas solicitadas</td>
+            <td style="padding-left: 20px; font-weight: 600">{!totalCantidadSolicitada}</td>
+        </tr>
+        <tr>
+            <td style="font-weight: 600">Total de claves confirmadas</td>
+            <td style="padding-left: 20px; font-weight: 600">{!totalPiezasAprobadas}</td>
+            <td style="text-align: right; font-weight: 600">Total de piezas confirmadas</td>
+            <td style="padding-left: 20px; font-weight: 600">{!totalCantidadAprobada}</td>
+        </tr>
+    </table>
+</apex:page>
+
+<!-- Page: -->
+<!--<apex:page controller="controladorOrden" REnderAs="pdf">
+    <apex:repeat value="{!ordenes}" var="orden">
+        <h4 style="text-align: center;">CONFIRMACIÓN DE PEDIDO</h4>
+        <table style="font-family: sans-serif; font-size: 12px; margin-top: 70px">
+            <tr>
+                <td style="font-weight: 600;">ALMACENAJE Y DISTRIBUCIÓN AVIOR, S.A. DE C.V. </td>
+                <td style="text-align: right; padding-left: 250px "></td>
+                <td style="padding-right: 30px">FOLIO DE PEDIDO</td>
+            </tr>
+            <tr>
+                <td style="font-weight: 600;">RFC: ADA000803GM5 </td>
+                <td></td>
+                <td style="text-align: right; font-weight: 600; padding-right: 57px">{!orden.Folio_del_Pedido__c}</td>
+            </tr>
+            <tr>
+                <td style="font-weight: 600;">Carretera México Querétaro, KM 187+800,</td>
+            </tr>
+            <tr>
+                <td style="font-weight: 600;">Col. Calamanda, El Marqués, Querétaro, C.P. 76247.</td>
+                <td style="text-align: right; padding-right: 20px">FOLIO DE ENTREGA </td>
+                <td style="text-align: right; padding-right: 40px">TIPO DE PEDIDO</td>
+            </tr>
+            <tr>
+                <td></td>
+                <td style="text-align: right; font-weight: 600; padding-right: 30px">{!idSubalmacen} - 0410429911</td>
+                <td style="font-weight: 600; padding-left: 8px">{!orden.Tipo_de_Pedido__c}</td>
+            </tr>
+        </table>
+        
+        <span style="font-size: 16px">ALMACÉN</span>
+        
+        <table style="font-family: sans-serif; font-size: 12px; margin-top:20px">
+            <tr>
+                <td style="font-weight: 600;">Centro Nacional de Distribución</td>
+                <td style="text-align: right; padding-left: 140px">FOLIO DE REMISIÓN </td>
+                <td style="text-align: right; padding-left: 10px; padding-right: 70px">FECHA DE CONFIRMACIÓN</td>
+            </tr>
+            <tr>
+                <td style="font-weight: 600; width: 270px">Km 27.5 Carretera Lago de Guadalupe No 2-E</td>
+                <td style="text-align: right; font-weight: 600; padding-right: 10px">0429911</td>
+                <td style="font-weight: 600; padding-left: 60px">{!orden.CreatedDate}</td>
+            </tr>
+            <tr>
+                <td style="font-weight: 600">Colonia San Pedro Barrientos </td>
+            </tr>
+            <tr>
+                <td style="font-weight: 600">Municipio de Tlalnepantla C.P. 54010</td>
+            </tr>
+            
+        </table>
+        
+        <table style="font-family: sans-serif; font-size: 12px; margin-top: 20px">
+            <tr>
+                <td style="width: 200px">TIPO DE UNIDAD MÉDICA</td>
+                <td style="padding-left: 10px; width: 200px">CLAVE PRESUPUESTAL</td>
+                <td style="padding-left: 10px;" >NÚMERO DE UNIDAD MÉDICA</td>
+                <td style="padding-left: 10px;">NOMBRE DE UNIDAD MÉDICA</td>
+            </tr>
+            <apex:repeat value="{!umu}" var="u">
+                <apex:outputPanel rendered="{!u.Id == orden.UMU__c}">
+                    <tr>
+                        <td style="width: 200px; font-weight: 600">{!u.Tipo_UMU__c}</td>
+                        <td style="padding-left: 10px; width: 200px; font-weight: 600">{!u.Clave_Presupuestal__c}</td>
+                        <td style="padding-left: 10px; font-weight: 600">{!u.UMU__c}</td>
+                        <td style="padding-left: 10px; font-weight: 600">{!u.Name}</td>
+                    </tr>
+                </apex:outputPanel>
+            </apex:repeat>
+        </table>
+        
+        <table style="font-family: sans-serif; font-size: 12px; margin-top: 20px">
+            <tr>
+                <td style="width: 200px">SOLICITANTE</td>
+                <td style="padding-left: 10px; width: 200px">DELEGACIÓN</td>
+                <td style="padding-left: 10px;">LUGAR DE ENTREGA</td>
+            </tr>
+            <tr>
+                <td style="width: 200px; font-weight: 600">{!contact.Name}</td>
+                <apex:repeat value="{!umu}" var="u">
+                    <apex:outputPanel rendered="{!u.Id == orden.UMU__c}">
+                        <td style="padding-left: 10px; width: 200px; font-weight: 600">{!u.Delegacion__c}</td>
+                    </apex:outputPanel>
+                </apex:repeat>
+                <td style="padding-left: 10px; font-weight: 600" >DR. IGNACIO CHAVEZ CUESTA BARRIOS No.33 EJIDO LA CANTERA, Nayarit. CP. 6350</td>
+            </tr>
+            
+        </table>
+        
+        <table style="font-family: sans-serif; font-size: 12px; margin-top: 40px">
+            <tr style="background-color:#D8D335">
+                <td style="padding-left: 5px; padding-right: 5px; width: 120px">Clave</td>
+                <td style="padding-left: 10px; width: 350px">Descripción</td>
+                <td style="padding-left: 10px; text-align: center; padding-left: 5px; padding-right: 5px">Unidad</td>
+                <td style="padding-left: 10px; text-align: center; padding-left: 5px; padding-right: 5px">Piezas Solicitadas</td>
+                <td style="padding-left: 10px; text-align: center; padding-left: 5px; padding-right: 5px">Piezas Confirmadas</td>
+            </tr> 
+            <apex:repeat value="{!productos}" var="productoList">
+                <apex:repeat value="{!productoList}" var="producto">
+                    <tr>
+                        <apex:repeat value="{!producto.Order_Line_Items__r}" var="orderLineItem">
+                            <apex:outputPanel rendered="{!orderLineItem.Order__c == orden.Id}">
+                                <td>{!producto.Product_Code_ID__c}</td>
+                                <td>{!producto.Name}</td>
+                                <td style="text-align: center; padding-left: 4px; padding-right: 5px">UN</td>
+                                <td style="text-align: center; padding-left: 4px; padding-right: 5px">{!orderLineItem.Cantidad_Solicitada__c}</td>
+                                <td style="text-align: center; padding-left: 4px; padding-right: 5px">{!IF(ISNULL(orderLineItem.Cantidad_Aprobada__c), 0, orderLineItem.Cantidad_Aprobada__c)}</td>
+                            </apex:outputPanel>
+                        </apex:repeat>
+                    </tr>
+                </apex:repeat>
+            </apex:repeat>  
+        </table>
+        
+        <table style="font-family: sans-serif; font-size: 12px; margin-top: 20px;  border-top: 1px solid black; ">
+            <tr>
+                <td style="font-weight: 600">Total de claves solicitadas</td>
+                <td style="padding-left: 20px; font-weight: 600">{!totalPiezasSolicitadas}</td>
+                <td style="text-align: right; padding-left: 300px; font-weight: 600">Total de Piezas solicitadas</td>
+                <td style="padding-left: 20px; font-weight: 600">{!totalCantidadSolicitada}</td>
+            </tr>
+            
+            <tr>
+                <td style="font-weight: 600">Total de claves confirmadas</td>
+                <td style="padding-left: 20px; font-weight: 600">{!totalPiezasAprobadas}</td>
+                <td style="text-align: right; font-weight: 600">Total de piezas confirmadas</td>
+                <td style="padding-left: 20px; font-weight: 600">{!totalCantidadAprobada}</td>
+            </tr>
+        </table>
+    </apex:repeat>
+</apex:page>-->

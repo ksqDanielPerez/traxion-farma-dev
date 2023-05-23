@@ -1,0 +1,88 @@
+<aura:component>
+
+    <!-- PARENT ATTRS -->
+    <aura:attribute name="padreFiltroClaves" type="Aura.Component"/>
+    <aura:attribute name="padreFiltroUnidadMedica" type="Aura.Component"/>
+    <aura:attribute name="padreFiltroEstados" type="Aura.Component"/>
+    <aura:attribute name="padreFiltroPedidos" type="Aura.Component"/>
+    <aura:attribute name="padreFiltroTransportes" type="Aura.Component"/>
+    <aura:attribute name="padreFiltroDelegaciones" type="Aura.Component"/>
+    <aura:attribute name="msname" type="String" default="Selecciona un valor..." />
+    <aura:attribute name="msoptions" type="List"/>
+    <aura:attribute name="type" type="String"/>
+
+    <!-- SELF ATTRS -->
+    <aura:attribute name="mslabel" type="String" default="" />
+    <aura:attribute name="maxSelectedShow" type="Integer" default="1" />
+    <aura:attribute name="showFilterInput" type="Boolean" default="true" />
+    <aura:attribute name="showRefreshButton" type="Boolean" default="true" />
+    <aura:attribute name="showClearButton" type="Boolean" default="true" />
+    <aura:attribute name="selectedOptions" type="List" />
+    <aura:attribute name="selectedLabel" type="String" default="Select a value..." />
+    <aura:attribute name="initializationCompleted" type="Boolean" default="false" />
+    <aura:attribute name="pillBoxValues" type="List" />
+    
+    <!-- HANDLERS -->
+    <aura:handler name="render" value="{!this}" action="{!c.onRender}"/>
+    <aura:handler event="c:limpiarParametrosDeFiltros" action="{!c.handleClearFilters}"/> 
+    <!-- <aura:handler event="c:limpiarParametrosDeFiltroIndividual" action="{!c.handleClearIndividualFilter}"/>  -->
+
+    <!-- DROPDOWN Component-->
+    <div class="slds-form-element">
+        <!-- <aura:if isTrue="{!!empty(v.selectedLabel)}">
+            <label class="slds-form-element__label">{!v.mslabel}</label>
+        </aura:if> -->
+        <div class="slds-form-element__control">
+            <div class="slds-combobox_container">
+                <div id="ms-picklist-dropdown" class="slds-dropdown-trigger slds-dropdown-trigger_click slds-picklist ms-picklist-dropdown" 
+                    aria-expanded="false" aria-haspopup="listbox" role="listbox" >
+                    <!-- MAIN BUTTON CODE -->
+                    <div class="slds-combobox__form-element slds-input-has-icon slds-input-has-icon_right" role="none">
+                        <input class="slds-combobox__input ms-input" id="ms-input" aria-controls="ms-dropdown-items" 
+                                role="textbox" type="text" style="font-size: 12px;width:100%;height:30px;" placeholder="{!v.selectedLabel}" value="" readonly="true"/>
+                        <span class="slds-icon_container slds-icon-utility-down slds-input__icon slds-input__icon_right" title="Click to open dropdown">
+                            <lightning:icon iconName="utility:down" size="x-small" class="slds-icon slds-icon--selected slds-icon--x-small slds-icon-text-default slds-m-right--x-small" />
+                        </span>
+                    </div>
+                    <!-- MAIN BUTTON CODE ENDS -->
+                    <!-- Drop down list -->
+                    <div id="ms-dropdown-items" role="listbox">
+                        <!-- Creating unordered list -->
+                        <ul class="slds-listbox slds-listbox_vertical slds-dropdown slds-dropdown_fluid ms-dropdown" style="width:auto" role="presentation">
+                            <!-- showing filter input -->
+                            <aura:if isTrue="{!v.showFilterInput}">
+                                <input class="slds-listbox__item ms-filter-input" id="ms-filter-input" aria-controls="ms-dropdown-items" 
+                                role="textbox" type="text" placeholder="Filter values.." value="" oninput="{!c.onInputChange}"/>
+                            </aura:if>
+                            <!-- showing refresh button -->
+                            <aura:if isTrue="{!v.showRefreshButton}">
+                                <lightning:buttonIcon iconName="utility:refresh" alternativeText="Clear filter search" onclick="{!c.onRefreshClick}"/>
+                            </aura:if>
+                            <!-- showing clear button -->
+                            <aura:if isTrue="{!v.showClearButton}">
+                                <lightning:buttonIcon iconName="utility:clear" alternativeText="Clear all selections" onclick="{!c.onClearClick}"/>
+                            </aura:if>
+                            
+                            <!-- Generating list item by iterating over options --> 
+                            <aura:iteration items="{!v.msoptions}" var="item">
+                                <li role="presentation" class="{!'slds-listbox__item ms-list-item '+ (item.selected ? 'slds-is-selected' : '') + 'selected-option'}"
+                                    id="ms-list-item" data-id="{!item.Id}" data-name="{!item.Name}">
+                                    <div id="listbox-option-unique-id-01" class="slds-media slds-listbox__option slds-listbox__option_plain slds-media_small slds-media_center" role="option">
+                                        <!-- Icon for each list item -->
+                                        <span class="slds-media__figure">
+                                            <lightning:icon iconName="utility:check" size="x-small" class="slds-icon slds-icon--selected slds-icon--x-small slds-icon-text-default slds-m-right--x-small" />
+                                        </span>
+                                        <!-- Body of each list item -->
+                                        <span class="slds-media__body">
+                                            <span class="slds-truncate" title="{!item.Name}">{!item.Name}</span>
+                                        </span>
+                                    </div>
+                                </li>
+                            </aura:iteration>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</aura:component>

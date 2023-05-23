@@ -1,0 +1,7 @@
+.THIS .inline-container {
+    display: inline-flex;
+}
+ 
+.THIS .padding-right {
+    padding-right: 20px;
+}

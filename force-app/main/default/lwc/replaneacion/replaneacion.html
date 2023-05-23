@@ -1,0 +1,142 @@
+<template>
+    <div class="container">
+        <!-- HEADER -->
+        <div class="slds-p-around_none slds-m-top_x-small slds-m-bottom_medium slds-m-horizontal_none">
+            <lightning-layout multiple-rows>
+                <lightning-layout-item size="12" small-device-size="7" medium-device-size="7" large-device-size="7" padding="around-small">
+                    <div class="custom-box slds-p-around_medium slds-text-align_left replaniacion-text-style">
+                            Replaneación
+                    </div>
+                </lightning-layout-item>
+                <lightning-layout-item size="12" small-device-size="7" medium-device-size="7" large-device-size="5" padding="around-small">
+                    <div class="custom-box slds-p-around_medium slds-text-align_left">
+                            <!-- <div class="search-align">Contact Name</div> -->
+                                <!-- value={search} onchange={handleOnSearch} is-loading={isLoading} -->
+                                <div class="grid-header">
+                                    <lightning-input label="Transporte" placeholder="Id De Transporte" data-id="loading" type="search" onchange={handleOnChangeTransporte}></lightning-input>
+                                    <lightning-input class="margin-left-input" placeholder="Id De Delivery / Remisión" label="Delivery/Remisión" data-id="loading" type="search" onchange={handleOnChangeDelivery}></lightning-input>
+                                </div>
+                    </div>
+                </lightning-layout-item>
+            </lightning-layout>
+        </div>
+        <!-- Left Panel -->
+        <div class="slds-p-around_none slds-m-top_x-small slds-m-bottom_medium slds-m-horizontal_none">
+            <lightning-layout multiple-rows>
+                <lightning-layout-item size="12" small-device-size="12" medium-device-size="12" large-device-size="3" padding="around-small">
+                    <div class="custom-box slds-text-align_left left-panel">
+                        <!-- LEFT PANEL -->
+                        <div class="filtro-Estatus">   
+                            <lightning-combobox
+                            name="progress"
+                            label="Filtro Estatus"
+                            placeholder="Selecciona Estatus"
+                            options={options}
+                            onchange={handleOnChangeStatus}
+                            ></lightning-combobox>
+                        </div>
+                        <!-- TARJETA DE TRANSPORTE -->
+                        <template for:each={filtroTransporte} for:item="transporte">
+                            <c-replaneacion-item 
+                            key={transporte.Id} 
+                            transporte={transporte}
+                            ontransporte={handleSelectedTransporte}>
+                            </c-replaneacion-item>
+                        </template>  
+                    </div>
+                </lightning-layout-item>
+                <lightning-layout-item size="12" small-device-size="12" medium-device-size="12" large-device-size="9" padding="around-small">
+                   
+                    <template if:true={isTransporte}>
+                        <div class="custom-box slds-p-around_medium slds-text-align_left right-panel">
+                        
+                            <div class="right-panel">
+                                <div class="right-panel-item1">
+                                    Entrega {actualTransporte.Id}
+                                </div>
+                                <div class="right-panel-item2">
+                                    <span class="text">
+                                        {actualTransportista.Nombre}
+                                    </span>
+                                    <p class="text">
+                                        <lightning-icon icon-name='utility:call' alternative-text='call' size='xx-small' title='call'></lightning-icon>
+                                        {actualTransportista.Telefono}      
+                                    </p>
+                                    <p class="text">
+                                        <lightning-icon icon-name='utility:email' alternative-text='email' size='xx-small' title='email'></lightning-icon>
+                                        {actualTransportista.Email}
+                                    </p>
+                                </div>
+                                <div class="right-panel-item3">
+                                    <button class="button-btn button-editar">Editar Entrega</button>
+                                    <button class="button-btn button-aprobar">Aprobar Y Enviar A Firma</button>
+                                </div>
+                                <div class="right-panel-item4">
+                                    <!-- INSUMOS -->
+                                    <lightning-accordion class="example-accordion" onsectiontoggle={handleToggleSection} active-section-name="A">
+                                        <lightning-accordion-section name="A" label="Insumos">
+                                            <p>This is the content area for section A.</p>
+                                            <p>Donec vitae tellus egestas, faucibus ipsum ac, imperdiet erat. Nam venenatis non ante at sagittis. Integer vel purus
+                                                eget nunc semper placerat. Nam tristique quam leo, et posuere enim condimentum quis. Ut sagittis libero id lectus tempor
+                                                maximus. Nunc ut tincidunt eros, a hendrerit leo. Suspendisse quis fermentum dolor. Nulla euismod consectetur leo, id
+                                                condimentum nunc consequat quis.</p>
+                                        </lightning-accordion-section>
+                                
+                                        <lightning-accordion-section name="B" label="Comentario">
+                                            <div class="comentario-contenido">
+                                                <template if:true={isComentario}>     
+                                                    <template for:each={comentarios} for:item="comentario">
+                                                        <div key={comentario.Id} class="ver-comments">
+                                                                <div class="text">
+                                                                    <span class="comment-nombre">
+                                                                        {comentario.Nombre}
+                                                                    </span>
+                                                                    <span class="comment-hora">
+                                                                        {comentario.Fecha} - {comentario.Hora}
+                                                                    </span>
+                                                                </div>
+                                                                <span class="text">{comentario.Descripcion}</span>
+                                                        </div>
+                                                    </template>
+                                                </template>
+                                                <template if:false={isComentario}>
+                                                        <span class="no-comment">No hay comentarios.</span>
+                                                </template>
+                                            </div>
+                                            <lightning-textarea 
+                                                name="input3" 
+                                                onchange={handleOnChange} 
+                                                placeholder={placeHolder} 
+                                                value={comentario}
+                                                class="textarea-width" 
+                                                message-when-value-missing="No puedes publicar un mensaje vacio.">
+                                            </lightning-textarea>
+                                         <lightning-button-icon data-id={actualTransporte.Id} icon-name="utility:add" alternative-text="Add" onclick={handleAgregarComentario} class="slds-m-left_xx-small add-comment" title="Add"></lightning-button-icon>
+                                        </lightning-accordion-section>
+                                    </lightning-accordion>
+
+                                    <!-- TERMINA INSUMOS SECTIONS-->
+                                </div>
+                                <div class="right-panel-item5">
+                                    Evidencia
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                    <template if:false={isTransporte}>
+                        <div class="slds-align_absolute-center idle-content">
+                            <span class="text">
+                                SELECCIONA UNA ENTREGA PARA VER SUS DETALLES
+                            </span>
+                            <span class="text">
+                                 
+                            </span>
+                        </div>
+                    </template>
+                </lightning-layout-item>
+            </lightning-layout>
+        </div>
+
+        <!-- Right Panel -->
+    </div>
+</template>
