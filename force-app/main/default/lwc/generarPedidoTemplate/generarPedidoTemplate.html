@@ -1,0 +1,37 @@
+<template>
+    <div class="slds-m-top_x-small slds-m-bottom_medium">
+        <lightning-layout multiple-rows>
+            <lightning-layout-item size="12">
+                <div class="slds-text-align_center">
+                    <c-generacion-de-pedidos-menu></c-generacion-de-pedidos-menu> 
+
+                    <lightning-layout class="row">
+                        <lightning-layout-item size={isTipoDePedido.size} class={isTipoDePedido.class}>
+                            <div class="slds-p-around_xxx-small">
+                                <c-unidad-medica-view
+                                    onnordinario={handlePedidoNoOrdinario}
+                                    onespeciales={handlePedidoEspeciales}
+                                    onordinario={handlePedidoOrdinario}
+                                    tipo-de-pedido={tipoDePedido}
+                                ></c-unidad-medica-view>
+                            </div>
+                        </lightning-layout-item>
+
+                        <template if:true={isTipoDePedido.estado}>
+                            <lightning-layout-item size="2" class="col-a">
+                                <div class="slds-p-around_xxx-small slds-text-align_center">
+                                    <c-generar-pedido-tipo-de-orden
+                                        onurgencia={handleOnUrgencia} 
+                                        onsoporte={handleOnSoporte}
+                                        onextraordinario={handleOnExtraordinario}
+                                    ></c-generar-pedido-tipo-de-orden>
+                                </div>
+                            </lightning-layout-item>
+                        </template>
+                    </lightning-layout>
+
+                </div>
+            </lightning-layout-item>
+        </lightning-layout>
+    </div>
+</template>
