@@ -231,7 +231,7 @@ export default class ProgramSuppliesList extends NavigationMixin(LightningElemen
     filteredData.forEach(function(data){
       const {clavepresupuestal = null} = data;
       if(clavepresupuestal){
-        const quantityInput = self.template.querySelector('lightning-input[data-id="' + data.clavedeinsumo + '"][data-clavepresupuestal="' + data.clavepresupuestal.substring(1).trim()  + '"]');
+        
         quantityInput.value = data.cantidadaenviar;
         console.log("Printing cantidad");
         console.log(JSON.parse(JSON.stringify(quantityInput)));
@@ -555,10 +555,7 @@ export default class ProgramSuppliesList extends NavigationMixin(LightningElemen
   }
 
   validateMultiplo(multiplo, value) {
-    console.log('multiplo' + multiplo);
     const arrayMultiplo = multiplo.split(",");
-    console.log('array Multiplo' + arrayMultiplo)
-
     if (arrayMultiplo.length > 1) {
       console.log('multiple');
       return arrayMultiplo.some((element) => value % element === 0);

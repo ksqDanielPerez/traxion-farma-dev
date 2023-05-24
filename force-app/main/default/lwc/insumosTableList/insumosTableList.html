@@ -34,11 +34,11 @@
 
                     <div class="c-container">
                         <div class="slds-p-around_small slds-text-align_center table-scroll">
-                            <table id='tableToExcel' class="slds-table slds-table_cell-buffer slds-table_bordered" aria-labelledby="element-with-table-label other-element-with-table-label">
+                            <table id='tableToExcel' class="" aria-labelledby="element-with-table-label other-element-with-table-label">
                                 <!-- Generar Pedido table -->
                                 <template if:true={isGenerarPedido}>
                                     <thead>
-                                        <tr class="slds-line-height_reset">
+                                        <tr class="">
                                         <template for:each={pedidosCol} for:item="column">
                                                 <th class="" scope="col" key={column.key}>
                                                     <div class="slds-truncate" title={column.label}>
@@ -51,20 +51,20 @@
 
                                     <template for:each={dpnList} for:item="medica">
                                         <tr class="slds-hint-parent" key={medica.Id} data-id={medica.Id}>
-                                                <th data-label="Clave" scope="row">
-                                                    <div class="slds-truncate">{medica.Clave}</div>
-                                                </th>
+                                                <td data-label="Clave" scope="row">
+                                                    <div class="slds-truncate td">{medica.Clave}</div>
+                                                </td>
                                                 <td data-label="Insumos">
-                                                    <div class="slds-truncate">{medica.Descripcion}</div>
+                                                    <div class="slds-truncate td">{medica.Descripcion}</div>
                                                 </td>
                                                 <td data-label="DPN">
-                                                    <div class="slds-truncate">{medica.DPN}</div>
+                                                    <div class="slds-truncate td">{medica.DPN}</div>
                                                 </td>
                                                 <td data-label="CantidadValidadaAcumulada">
-                                                    <div class="slds-truncate">{medica.CantidadValidadaAcumulada}</div>
+                                                    <div class="slds-truncate td">{medica.CantidadValidadaAcumulada}</div>
                                                 </td>
                                                 <td data-label="Disponible En DPN">
-                                                    <div class="slds-truncate">{medica.DisponibleEnDpn}</div>
+                                                    <div class="slds-truncate td">{medica.DisponibleEnDpn}</div>
                                                 </td>
                                         </tr>
                                     </template>
@@ -104,12 +104,12 @@
                                                         <td data-label="DisponibleASolicitar">
                                                             <div class="slds-truncate">{medica.DisponibleASolicitar}</div>
                                                         </td>
-                                                        <td data-label="ExistenciaDeUnidad">
+                                                        <!-- <td data-label="ExistenciaDeUnidad">
                                                             <div class="slds-truncate">0</div>
                                                         </td>
                                                         <td data-label="DisponibleEnCenadi">
                                                             <div class="slds-truncate">0</div>
-                                                        </td>
+                                                        </td> -->
                                                         <td data-label="EnTransito">
                                                             <div class="slds-truncate">0</div>
                                                         </td>
@@ -121,6 +121,7 @@
                                                                     label="Cantidad" 
                                                                     name="Cantidad" 
                                                                     value={medica.Cantidad} 
+                                                                    disabled={medica.inputDisabled}
                                                                     data-id={medica.Clave} 
                                                                     data-element="input-field"
                                                                     onchange={handleOnChange}>
@@ -130,11 +131,36 @@
                                                             </template>
                                                         </td>
                                                         <td data-label="Action">
-                                                            <lightning-button-icon icon-name="action:approval" data-msg="Namaste" alternative-text="Approval" title="Approved" variant="error" data-id={medica.Clave} onclick={handleAgregarInsumo}></lightning-button-icon>
+                                                            <!-- <lightning-button-icon icon-name="action:approval" data-msg="Namaste"
+                                                            alternative-text="Approval" title="Approved" variant="error"
+                                                             data-id={medica.Clave} onclick={handleAgregarInsumo}></lightning-button-icon> -->
+                                                            <template if:true={medica.mostrarBoton}>
+                                                                <lightning-button
+                                                                    data-msg="Namaste"
+                                                                    data-id={medica.Clave}
+                                                                    data-name="Add"
+                                                                    value={medica.Clave}
+                                                                    label="Agregar"
+                                                                    title="Agregar"
+                                                                    variant="brand"
+                                                                    onclick={handleAgregarInsumo}>
+                                                                </lightning-button>
+                                                            </template>
+                                                            <template if:false={medica.mostrarBoton}>
+                                                                <lightning-button
+                                                                    data-msg="Namaste"
+                                                                    data-id={medica.Clave}
+                                                                    data-name="Remove"
+                                                                    value={medica.Clave}
+                                                                    label="Quitar"
+                                                                    title="Quitar"
+                                                                    variant="destructive"
+                                                                    onclick={handleAgregarInsumo}>
+                                                                </lightning-button>
+                                                            </template>
                                                         </td>
                                                 </tr>
                                             </template>
-                                        
                                         </tbody>
                                     </template>
                                     <template if:true={isPedidos}>
@@ -169,12 +195,12 @@
                                                 <td data-label="DisponibleASolicitar">
                                                     <div class="slds-truncate">{pedidos.DisponibleASolicitar}</div>
                                                 </td>
-                                                <td data-label="ExistenciaDeUnidad">
+                                                <!-- <td data-label="ExistenciaDeUnidad">
                                                     <div class="slds-truncate">0</div>
                                                 </td>
                                                 <td data-label="DisponibleEnCenadi">
                                                     <div class="slds-truncate">0</div>
-                                                </td>
+                                                </td> -->
                                                 <td data-label="EnTransito">
                                                     <div class="slds-truncate">0</div>
                                                 </td>

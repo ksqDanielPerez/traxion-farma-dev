@@ -1,13 +1,20 @@
+:host {
+  --green: #8AC6BF;
+  --darkGreen: #619a94;
+  --lightGray: #f9f9f9;
+}
+
+@font-face {
+    font-family: 'raleway';
+    src: url('/resource/ASSETS/ASSETS/Raleway-Regular.ttf') format('TrueType');
+}
+
 /* *{
-    padding: 0;
-    margin: 0;
+    font-family: 'raleway';
+    font-size: 0.938rem;
 } */
 
 .container{
-    /* min-height: 324px;
-    padding: 20px; */
-    /* width: 128%; */
-    /* width: 860px; */
     border-radius: 1px;
     background-color: white;
     box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(114, 114, 114, 0.19);
@@ -63,4 +70,39 @@ lightning-icon {
 
 .option-text{
     font-size: 15px;
+}
+
+
+
+table {
+    border-top: 1px solid lightgray;
+    border-bottom: 1px solid lightgray;;
+    border-collapse: collapse;
+    overflow: hidden;
+}
+
+thead {
+    border-bottom: 1px solid lightgray;;
+}
+
+th {
+    padding: 0.8rem 0.625rem;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1rem;
+    font-weight: bold;
+}
+
+td {
+    padding: 0.8rem;
+    text-align: left;
+}
+
+/* td:nth-child(4n),
+td:last-child {
+    text-align: center;
+} */
+
+tr:nth-child(even) {
+    background-color: var(--lightGray);
 }

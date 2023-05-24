@@ -15,8 +15,8 @@ const columns = [
     {label: 'Validado', fieldName: 'Validado', type: 'text'},
     {label: 'Disponible En DPN', fieldName: 'DisponibleEnDpn', type: 'text'},
     {label: 'Disponible a Solicitar', fieldName: 'DisponibleASolicitar', type: 'text'},
-    {label: 'Existencia De Unidad', fieldName: 'ExistenciaDeUnidad', type: 'text'},
-    {label: 'Disponible En Cenadi', fieldName: 'DisponibleEnCenadi', type: 'text'},
+    //{label: 'Existencia De Unidad', fieldName: 'ExistenciaDeUnidad', type: 'text'},
+    //{label: 'Disponible En Cenadi', fieldName: 'DisponibleEnCenadi', type: 'text'},
     {label: 'En Tránsito', fieldName: 'EnTransito', type: 'text'},
     {label: 'Cantidad', fieldName: 'Cantidad', type: 'text', editable: true },
     {label: 'Acción', fieldName: 'Action', type: 'text'},
@@ -101,88 +101,120 @@ export default class InsumosTableList extends LightningElement {
     }
 
     validateInput(element, insumo){
-        //  console.log('Validar Data: ' + JSON.stringify(insumo));
-        var errorMessage = ''; 
-        let isMultiplo = this.validateMultiplo(insumo.PiezaPorPaquete, element.value);  
+        var errorMessage = '';
+        let isMultiplo = this.validateMultiplo(insumo.PiezaPorPaquete, element.value);
 
-        // console.log('Insumos: ' + JSON.stringify(insumo));
-        if(element.value > insumo.DisponibleEnDpn){
-            errorMessage = errorMessage + "DPN Excedido. ";
-            element.setCustomValidity(errorMessage);
-            this.isInputValidate = false;
+        if(element.value <= 0 || element.value == null){
+            errorMessage = 'La cantidad mínima a ingresar es 1';
+        } else if(element.value > insumo.DisponibleEnDpn){
+            errorMessage = 'La cantidad de la DPN excedida';
+        } else if(!isMultiplo){
+            errorMessage = `Este insumo solo puede solicitarse en múltiplos de ${insumo.PiezaPorPaquete}`;
+        } else if(!Number.isInteger(Number(element.value))) {
+            errorMessage = 'Ingrese números enteros, no decimales';
         }
-        else if(!isMultiplo){
-            errorMessage = errorMessage + `Este insumo solo puede solicitarse en múltiplos de ${insumo.PiezaPorPaquete}`;
-            element.setCustomValidity(errorMessage);
-            this.isInputValidate = false;
-        }else{
-            element.setCustomValidity("");
-            this.isInputValidate = true;
-            //element.disabled = true;
-        }
-            element.reportValidity();
+
+        element.setCustomValidity(errorMessage);
+        this.isInputValidate = (errorMessage === '');
+        element.reportValidity();
     }
 
 
-    validateMultiplo(multiplo, value){ 
-        if(typeof(multiplo) === 'undefined')return true; 
-        const even = value % multiplo === 0;
-        return even;
+    validateMultiplo(multiplo, value) {
+        console.log('Multiplo: ' + multiplo);
+        if(typeof(multiplo) === 'undefined') return true;
+        const arrayMultiplo = multiplo.split(",");
+        console.log('arrayMultiplo: ' + arrayMultiplo);
+        if (arrayMultiplo.length > 1) {
+          console.log('multiple');
+          return arrayMultiplo.some((element) => value % element === 0);
+        } else {
+          console.log('single');
+          return value % arrayMultiplo[0] === 0;
+        }
+    }
+
+    handleOnChange(event){
+        //this.cantidad = event.detail.value;
     }
 
     handleAgregarInsumo(event){
-        
-        var inputElement = {};
-        let clave = event.target.dataset.id;
-        var nuevoInsumo = this.List.find(ele => ele.Clave == clave);
+        const clave = event.target.dataset.id;
+        const nombreBoton = event.target.dataset.name;
+        const nuevoInsumo = this.List.find(ele => ele.Clave === clave);
+        const input = this.template.querySelector(`lightning-input[data-id="${clave}"][data-element="input-field"]`);
 
-        const allValid = [
-            ...this.template.querySelectorAll('[data-element="input-field"]'),
-        ].forEach((element) => {
-                // console.log('Agregando: ' + element.getAttribute('data-id'));
-                if(element.getAttribute('data-id') === clave){
-                    // console.log('Value: ' + element.value);
-                    inputElement = element;
-                }  
-        });    
+        console.log('nuevoInsumo: ' + JSON.stringify(nuevoInsumo));
+        console.log('input');
+        console.log(JSON.parse(JSON.stringify(input)));
 
-        this.validateInput(inputElement, nuevoInsumo);
+        this.cantidad = input.value;
 
-        if(this.isInputValidate){
-            //console.log('Producto a agregar: ' + JSON.stringify(nuevoInsumo));
-            nuevoInsumo.Cantidad = this.cantidad;
-            const hasKey = this.containsObject(nuevoInsumo, this.dpnCarrito);
-            let isCantidadLowerThanDpn = nuevoInsumo.Cantidad <= nuevoInsumo.DPN ? true: false;
+        if(nombreBoton === "Add") {
+            this.validateInput(input, nuevoInsumo);
+            if(this.isInputValidate){
+                nuevoInsumo.inputDisabled = true;
+                nuevoInsumo.Cantidad = this.cantidad;
+                nuevoInsumo.mostrarBoton = false;
+                const hasKey = this.dpnCarrito.some(item => item.Clave === nuevoInsumo.Clave);
+                //let isCantidadLowerThanDpn = nuevoInsumo.Cantidad <= nuevoInsumo.DPN ? true: false;
 
-            if(!hasKey && nuevoInsumo.Cantidad > 0 && isCantidadLowerThanDpn){
-                const nuevoPedido = this.dpnCarrito.slice();
-                nuevoPedido.push(nuevoInsumo);
-                this.dpnCarrito = nuevoPedido;
-                this.totalInsumos += 1; 
-                this.totalPiezas = parseInt(nuevoInsumo.Cantidad)+ this.totalPiezas;
-                this.showToast('Success', 'Producto ha sido agregado.', 'success', 'pester');
-                
+                if(!hasKey){
+                    this.dpnCarrito.push(nuevoInsumo);
+
+                    console.log('carro: ', JSON.stringify(this.dpnCarrito));
+
+                    this.totalInsumos += 1;
+                    this.totalPiezas += parseInt(nuevoInsumo.Cantidad);
+                    this.showToast('Success', 'Producto agregado correctamente', 'success', 'pester');
+                    const payload = {
+                        Carrito: this.dpnCarrito
+                    }
+                    publish(this.messageContext, getCarritoData, payload);
+                }
+            }
+        } else {
+            nuevoInsumo.inputDisabled = false;
+            nuevoInsumo.mostrarBoton = true;
+            const hasKey = this.dpnCarrito.some(item => item.Clave === nuevoInsumo.Clave);
+
+            if(hasKey){
+                this.dpnCarrito = this.dpnCarrito.filter(item => item.Clave !== nuevoInsumo.Clave);
+
+                console.log('carro: ', JSON.stringify(this.dpnCarrito));
+
+                this.totalInsumos -= 1;
+                this.totalPiezas -= parseInt(nuevoInsumo.Cantidad);
+                this.showToast('Success', 'Producto removido correctamente', 'success', 'pester');
                 const payload = {
                     Carrito: this.dpnCarrito
                 }
-                // console.log('Item carrito publicar: ' + JSON.stringify(payload));
                 publish(this.messageContext, getCarritoData, payload);
             }
         }
 
+        this.List = [...this.List];
     }
 
     handleRemovePedidos(event){
+        const clave = event.target.dataset.id;
         const nuevoInsumo = this.List.find(ele => ele.Clave == event.target.dataset.id);
-       
+        //const input = this.template.querySelector(`lightning-input[data-id="${clave}"][data-element="input-field"]`);
+
+        console.log(JSON.stringify(nuevoInsumo));
+
+        nuevoInsumo.mostrarBoton = true;
+        nuevoInsumo.inputDisabled = false;
+        //input.disabled = false;
+
         const nuevaLista = [...this.dpnCarrito];
         nuevaLista.pop(nuevoInsumo);
 
         this.dpnCarrito = nuevaLista;
-        this.totalInsumos -= 1; 
+        this.totalInsumos -= 1;
         this.totalPiezas = this.totalPiezas - nuevoInsumo.Cantidad;
 
-        this.showToast('Success', 'Producto ha sido removido.', 'Success', 'pester');
+        this.showToast('Success', 'Producto removido correctamente', 'Success', 'pester');
         
         const payload = {
             Carrito: ''
@@ -269,6 +301,8 @@ export default class InsumosTableList extends LightningElement {
                     DPN: item.L_mite_Mensual__c,
                     CantidadValidadaAcumulada: item.Consumido__c,
                     DisponibleEnDpn: disponible,
+                    mostrarBoton: true,
+                    inputDisabled: false,
                     }
                     productKeys.push(item.Product__r.Product_Code_ID__c);
                     payload.push(row);
@@ -296,7 +330,8 @@ export default class InsumosTableList extends LightningElement {
                 copiarLista.forEach(element =>{ 
                     if(element.Clave == record.sku){
                         element.DisponibleASolicitar = record.availability;
-                        element.PiezaPorPaquete = record.packages_details.length > 0 ? record.packages_details[0].quantity_pieces_package : 0;
+                        element.PiezaPorPaquete = record.packages_details.length > 0 ? record.packages_details.map(piece => piece.quantity_pieces_package).join(", ") : 0;
+                        //sku.packages_details.map(piece => piece.quantity_pieces_package).join(", ");
                     }
                 })
             });
@@ -327,10 +362,6 @@ export default class InsumosTableList extends LightningElement {
         
         if(nuevaLista) this.dpnList = nuevaLista;
         if(nuevaLista && this.isUnidadMedica)this.dpnSolicitarList = nuevaLista;
-    }
-
-    handleOnChange(event){
-        this.cantidad = event.detail.value;
     }
 
     handleOnSearch(event){
