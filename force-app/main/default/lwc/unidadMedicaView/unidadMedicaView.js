@@ -179,9 +179,7 @@ export default class UnidadMedicaView extends LightningElement {
     }
 
     async handleGuardar(){
-
-        console.log("Inside handle guardar");
-
+        // console.log("Inside handle guardar");
         if(this.isObjEmpty(this.carrito)){
             LightningAlert.open({
                 message: 'Debes tener un insumo añadido.',
@@ -190,8 +188,7 @@ export default class UnidadMedicaView extends LightningElement {
             });
             return;
         }
-
-        console.log(JSON.parse(JSON.stringify(this.carrito)));
+        // console.log(JSON.parse(JSON.stringify(this.carrito)));
 
         let isNoOrdinario = this.tipoDePedido != 'No Ordinario' ? true: false;
         this.carrito.TipoDePedido = this.tipoDePedido;
@@ -199,10 +196,12 @@ export default class UnidadMedicaView extends LightningElement {
         this.carrito.justificacion = this.justificacion;
 
         if(isNoOrdinario || this.tipoDePedido == 'Ordinario'){ 
-            console.log("Printing is created");
-            const isCreated = await this.handleGeneracionDePedido(this.carrito);
-            console.log(isCreated);
-            if(!isCreated){ return; }
+            // console.log("Printing is created");
+            // const isCreated = await this.handleGeneracionDePedido(this.carrito);
+            // console.log(isCreated);
+            // if(!isCreated){ return;}
+            // console.log(JSON.stringify(this.carrito));
+            // console.log(JSON.parse(JSON.stringify(this.carrito)));
 
             const order = await crearOrden({payload: JSON.stringify([this.carrito])}).then(result =>{
                 return result;
