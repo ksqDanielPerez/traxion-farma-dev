@@ -1,0 +1,66 @@
+/* *{
+    padding: 0;
+    margin: 0;
+} */
+
+.container{
+    /* min-height: 324px;
+    padding: 20px; */
+    /* width: 128%; */
+    /* width: 860px; */
+    border-radius: 1px;
+    background-color: white;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(114, 114, 114, 0.19);
+}
+
+.form-design{
+    width: 70%;
+}
+
+.input-design{
+    padding-left: 7px;
+}
+
+.table-scroll{
+    overflow: scroll;
+    overflow-x: auto;
+}
+
+.c-container{
+    margin-top: 15px;
+}
+
+.search-align{
+    display: inline-block;
+}
+
+.search-margin-left{
+    margin: 12px;
+}
+
+.layout-excel{
+    margin-top: 33px;
+    text-align: right;
+}
+
+lightning-icon {
+    cursor: pointer;
+}
+
+.box{
+    display: inline;
+    padding-left: 5px;
+}
+
+.errorMessage{
+    color: red;
+}
+
+.paquete-style{
+    font-weight: 600;
+    margin-top: 3px;
+}
+
+.option-text{
+    font-size: 15px;
+}

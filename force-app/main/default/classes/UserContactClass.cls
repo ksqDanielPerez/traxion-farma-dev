@@ -161,13 +161,28 @@ public with sharing class UserContactClass {
         return JSON.serialize(ServicioPaqueteo.obtenerDisponibilidad(skus));
     }
 
-    // @AuraEnabled
-    // public static String checkGeneracionDePedido(String jsonData){
-    //     return JSON.serialize(ServicioGeneracionPedido.crearPedido(new List<Envio>()));
-        // List<String> skus = (List<String>) JSON.deserialize(jsonData, List<String>.class);
-        // List<Envio> envio = ServicioGeneracionPedido.Envio;
-        // List<Envio> delegationMap = (List<Envio>)JSON.deserialize(RestContext.request.requestBody.toString(), List<Envio>.class);
-        // List<Envio> envio = (List<Envio>)JSON.deserialize(ServicioGeneracionPedido.Envio);
-        // return JSON.serialize(ServicioGeneracionPedido.crearPedido(envio));
-    // }
+    @AuraEnabled
+    public static String checkGeneracionDePedido(String jsonData){
+        
+
+        List<ServicioGeneracionPedido.Envio> enviosList = new List<ServicioGeneracionPedido.Envio>();
+
+        ServicioGeneracionPedido.Envio envio = new ServicioGeneracionPedido.Envio();
+        
+        // envio.client_id = '123';
+        // envio.external_id = 'ABC'; 
+        // List<ServicioGeneracionPedido.Item> items = new List<ServicioGeneracionPedido.Item>();
+        // ServicioGeneracionPedido.Item item = new ServicioGeneracionPedido.Item();
+        // item.order_line = '1';
+        // item.product_number = 'XYZ';
+        // items.add(item);
+        // envio.items = items;
+        enviosList.add(envio);
+
+        // String response = JSON.serialize(ServicioGeneracionPedido.crearPedido(enviosList));
+        // System.debug(response);
+
+        return JSON.serialize(ServicioGeneracionPedido.crearPedido(enviosList));
+    }
+
 }

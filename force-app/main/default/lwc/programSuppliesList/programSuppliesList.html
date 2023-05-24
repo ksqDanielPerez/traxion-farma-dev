@@ -45,7 +45,8 @@
                             <tr>
                                 <th>Clave</th>
                                 <th>Insumo</th>
-                                <th>Disponibilidad</th>
+                                <!-- <th>Disponibilidad</th> -->
+                                <!-- <th>Almacen</th> -->
                                 <th></th>
                                 <th></th>
                             </tr>
@@ -55,7 +56,8 @@
                                 <tr key={data.Id}>
                                     <td>{data.productCodeId}</a></td>
                                     <td>{data.name}</td>
-                                    <td>{data.packageCapacity}</td>
+                                    <!-- <td>{data.packageCapacity}</td> -->
+                                    <!-- <td>{data.subalmacenId}</td> -->
                                     <td><lightning-button
                                         data-code={data.productCodeId}
                                         data-name="Detail"
@@ -150,12 +152,14 @@
                 class="slds-float_right">
             </lightning-button>
 
-            <lightning-button
-                label="Realizar Carga Masiva"
-                data-name="createOrderBtn"
-                onclick={handlecreateOrderBtn}
-                class="slds-float_right slds-m-right_small">
-            </lightning-button>
+            <lightning-input
+                type="file"
+                label="Please upload a UTF-8 encoded, comma separated .csv file"
+                accept=".csv"
+                onchange={handleFileUpload}
+                class="slds-float_right slds-m-right_small"
+                variant="label-hidden"
+            ></lightning-input>
 
             <lightning-button-icon
                 icon-name="utility:download"
@@ -192,7 +196,7 @@
                                 <p class="card-value">{maxDate}</p>
                             </div>
                         </div>
-            
+
                         <div class="slds-m-around_medium">
                             <table>
                                 <thead>
@@ -208,14 +212,16 @@
                                         <tr key={data.Id}>
                                             <td>{data.productCodeId}</a></td>
                                             <td>{data.name}</td>
-                                            <td>{data.packageCapacity}</td>
+                                            <td>{data.availability}</td>
                                             <td>
                                                 <lightning-input
                                                     data-id={data.id}
                                                     data-code={data.productCodeId}
                                                     data-productname={data.name}
-                                                    data-capacity={data.packageCapacity}
+                                                    data-capacity={data.availability}
+                                                    data-description={data.description}
                                                     data-umu={gData.id}
+                                                    data-clavepresupuestal={gData.budget}
                                                     data-name="quantityInput"
                                                     type="number"
                                                     min="1"

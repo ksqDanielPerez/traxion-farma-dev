@@ -1,0 +1,54 @@
+<template>
+	<div class="slds-clearfix">
+		<lightning-button
+			label="Seleccionar Unidades Médicas"
+			disabled="true"
+			data-name="addUmusBtn"
+			onclick={handleClickSelect}
+			class="slds-float_right slds-m-bottom_small">
+		</lightning-button>
+	</div>
+
+	<lightning-input
+		disabled="true"
+		data-name="calendar"
+		class="slds-p-around_x-small calendar-input"
+		type="date"
+		min={minDate}
+		placeholder="d MMM yyyy"
+		label="Fecha de entrega"
+		onchange={handleCalendar}>
+	</lightning-input>
+
+	<div if:true={isDataLoading} style="height: 200px; position:relative">
+		<div>
+			<lightning-spinner variant="base" size="medium" alternative-text="Loading..."></lightning-spinner>
+		</div>
+	</div>  
+
+	<div if:false={isDataLoading} class="combobox-container slds-p-around_x-small slds-m-top_xx-large slds-m-bottom_xx-large">
+
+		<lightning-combobox
+			name="orderType"
+			label="Tipo de Pedido"
+			placeholder="Selecciona una Opción"
+			options={optionsOrderType}
+			onchange={handleChange}>
+		</lightning-combobox>
+
+		<template if:true={isUmuTypeDataLoaded}>
+			<c-pick-list-multiselect label="Tipo de Unidad Médica" options={optionsUmuType} showclearbutton='true' showfilterinput='true'
+			showselectallbutton='true' showrefreshbutton='true' onitemselected={handleOnItemSelectedUmuType}></c-pick-list-multiselect>
+		</template>
+
+		<template if:true={isDelegationDataLoaded}>
+			<c-pick-list-multiselect data-name="delegation" label="Delegación" options={optionsDelegation} showclearbutton='true' showfilterinput='true'
+			showselectallbutton='true' showrefreshbutton='true' onitemselected={handleOnItemSelectedDelegation}></c-pick-list-multiselect>
+		</template>
+
+		<template if:true={isUmuDataLoaded}>
+			<c-pick-list-multiselect data-name="delegation" label="Unidad Médica" options={optionsUmu} showclearbutton='true' showfilterinput='true'
+			showselectallbutton='true' showrefreshbutton='true' onitemselected={handleOnItemSelectedUmu}></c-pick-list-multiselect>
+		</template>
+	</div>
+</template>

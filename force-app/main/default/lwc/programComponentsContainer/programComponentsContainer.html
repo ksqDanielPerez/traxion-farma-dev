@@ -1,0 +1,35 @@
+<template>
+  <div class="container">
+    <lightning-layout multiple-rows flexibility="auto">
+        <lightning-layout-item size="12">
+            <div class="">
+                <c-program-progress-indicator 
+                    selected-step={selectedStep}>
+                </c-program-progress-indicator>
+
+                <template if:true={isStep1}>
+                    <c-program-supplies-list
+                        ongetindicatorposition={handleIndicatorPosition}
+                        selected-step={selectedStep}>
+                    </c-program-supplies-list>
+                </template>
+
+                <template if:true={isStep2}>
+                    <c-program-medical-units
+                        ongetdatafrommedicalunits={handleDataMedicalUnits}>
+                    </c-program-medical-units>
+                </template>
+
+                <template if:true={isStep3}>
+                    <c-program-supplies-list
+                        selected-step={selectedStep}
+                        umus-selected={umusSelected}
+                        order-type={orderType}
+                        max-date={maxDate}>
+                    </c-program-supplies-list>
+                </template>
+            </div>
+        </lightning-layout-item>
+    </lightning-layout>
+</div>
+</template>

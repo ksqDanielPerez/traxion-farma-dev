@@ -82,6 +82,6 @@
                 </lightning:layoutItem>
             </lightning:layout>
         </div>
+
     </lightning:card>
-    
 </aura:component>

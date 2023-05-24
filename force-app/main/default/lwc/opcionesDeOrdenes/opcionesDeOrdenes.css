@@ -30,6 +30,19 @@
     margin-top: 12px;
 }
 
+.calendario-button-disabled {
+    background-color: gray;
+    /* Green */
+    border: none;
+    color: white !important;
+    border-radius: 10px;
+    padding: 15px 32px;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin-top: 12px;
+}
+
 .calendario-button:hover {
     background-color: #5b968f;
     /* Green */
@@ -84,8 +97,18 @@
     z-index: 1;
     background-color: white;
     box-shadow: 0px 2px 5px 0px rgba(0, 0, 0, 0.25);
-    padding: 10px;
+    /* padding: 10px; */
     width: 311px;
     height: 333px;
     border-radius: 10px;
+    margin-top: 40px;
+}
+
+.calendar-content {
+    padding-top: 15px;
+    padding-left: 15px;
+}
+
+.calendar-close-icon:hover{
+    cursor: pointer;
 }

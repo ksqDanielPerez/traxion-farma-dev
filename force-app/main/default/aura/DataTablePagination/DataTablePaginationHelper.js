@@ -108,19 +108,31 @@
     },
  
     searchRecordsBySearchPhrase : function (component) {
+        console.log("Inside search by phrase");
         let searchPhrase = component.get("v.searchPhrase");
+        console.log(searchPhrase);
+        console.log(!$A.util.isEmpty(searchPhrase));
+
         if (!$A.util.isEmpty(searchPhrase)) {
             let allData = component.get("v.allData");
             let filteredData = allData.filter(record => record.ID_de_Pedido__c.includes(searchPhrase));
+
+            console.log(filteredData);
+
             component.set("v.filteredData", filteredData);
             this.preparePagination(component, filteredData);
         }
     },
 
     searchRecordsBySearchClave : function (component) {
+        console.log("Inside search by clave");
+        
         let claves = ['010000053700', '010000010400'];
+
         if (claves.length > 0) {
+            console.log("Inside clave");
             let allData = component.get("v.allData");
+            console.log(allData);
             const filteredData = allData.filter((orden) => {
                 const { Order_Line_Items__r = [] } = orden;
                 return Order_Line_Items__r.some((oli) => {
@@ -129,6 +141,9 @@
                     return claves.includes(Product_Code_ID__c);
                 });
             });
+
+            console.log(filteredData);
+
             component.set("v.filteredData", filteredData);
             this.preparePagination(component, filteredData);
         }

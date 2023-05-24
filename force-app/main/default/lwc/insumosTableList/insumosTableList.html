@@ -1,0 +1,210 @@
+<template>
+    <template if:true={isUnidadMedica}>
+        <div class="container">
+            <template if:true={mostrarOcultarTabla}>
+                <template if:true={tamañoValidoDeDPN}>
+                    <div class="slds-align_absolute-center slds-p-around_small option-text">
+                        <b>DPN activa de la Unidad Médica</b>
+                    </div>
+
+                    <div class="header">
+                        <lightning-layout class="slds-p-horizontal_small">
+                            <lightning-layout-item size="6">
+                                <div class="slds-form-element">
+                                    <label class="slds-form-element__label" for="text-input-id-1"> 
+                                        {showTitleForSearch}
+                                    </label>
+                                    <div class="search-align search-margin-left">
+                                        <lightning-input data-id="loading" type="search" value={search} onchange={handleOnSearch} is-loading={isLoading}></lightning-input>
+                                    </div>
+                                </div>
+                            </lightning-layout-item>
+                            <lightning-layout-item size="6" class="layout-excel">
+                                <template if:true={isGenerarPedido}>
+                                    <lightning-icon icon-name='doctype:excel' alternative-text='excel' size='medium' title='excel' onclick={htmlTableToExcel}></lightning-icon>
+                                </template>
+                                <template if:false={isGenerarPedido}>
+                                    <div class="box">Resumen De La Orden</div>
+                                    <div class="box border">Insumos Agregados {totalInsumos}</div>
+                                    <div class="box">Total De Piezas {totalPiezas}</div>
+                                </template>
+                            </lightning-layout-item>
+                        </lightning-layout>
+                    </div>
+
+                    <div class="c-container">
+                        <div class="slds-p-around_small slds-text-align_center table-scroll">
+                            <table id='tableToExcel' class="slds-table slds-table_cell-buffer slds-table_bordered" aria-labelledby="element-with-table-label other-element-with-table-label">
+                                <!-- Generar Pedido table -->
+                                <template if:true={isGenerarPedido}>
+                                    <thead>
+                                        <tr class="slds-line-height_reset">
+                                        <template for:each={pedidosCol} for:item="column">
+                                                <th class="" scope="col" key={column.key}>
+                                                    <div class="slds-truncate" title={column.label}>
+                                                        {column.label}
+                                                    </div>
+                                                </th>
+                                        </template>
+                                        </tr>
+                                    </thead>
+
+                                    <template for:each={dpnList} for:item="medica">
+                                        <tr class="slds-hint-parent" key={medica.Id} data-id={medica.Id}>
+                                                <th data-label="Clave" scope="row">
+                                                    <div class="slds-truncate">{medica.Clave}</div>
+                                                </th>
+                                                <td data-label="Insumos">
+                                                    <div class="slds-truncate">{medica.Descripcion}</div>
+                                                </td>
+                                                <td data-label="DPN">
+                                                    <div class="slds-truncate">{medica.DPN}</div>
+                                                </td>
+                                                <td data-label="CantidadValidadaAcumulada">
+                                                    <div class="slds-truncate">{medica.CantidadValidadaAcumulada}</div>
+                                                </td>
+                                                <td data-label="Disponible En DPN">
+                                                    <div class="slds-truncate">{medica.DisponibleEnDpn}</div>
+                                                </td>
+                                        </tr>
+                                    </template>
+                                </template>
+
+                                <!-- Aqui termina el generar pedido table -->
+                                <template if:false={isGenerarPedido}>
+                                    <template if:false={isPedidos}>
+                                    <thead>
+                                        <tr class="slds-line-height_reset">
+                                        <template for:each={columns} for:item="column">
+                                                <th class="" scope="col" key={column.key}>
+                                                    <div class="slds-truncate" title={column.label}>
+                                                        {column.label}
+                                                    </div>
+                                                </th>
+                                        </template>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- Solicitar Pedidos -->
+                                            <template for:each={dpnList} for:item="medica">
+                                                <!-- <c-insumo-row key={medica.Id} data-id={medica.Id} rowdata={medica}></c-insumo-row> -->
+                                                <tr class="slds-hint-parent" key={medica.Id} data-id={medica.Id}>
+                                                        <th data-label="Descripcion" scope="row">
+                                                            <div class="slds-truncate">{medica.Descripcion}</div>
+                                                        </th>
+                                                        <td data-label="DPN">
+                                                            <div class="slds-truncate">{medica.DPN}</div>
+                                                        </td>
+                                                        <td data-label="Validado">
+                                                            <div class="slds-truncate">{medica.CantidadValidadaAcumulada}</div>
+                                                        </td>
+                                                        <td data-label="DisponibleEnDpn">
+                                                            <div class="slds-truncate">{medica.DisponibleEnDpn}</div>
+                                                        </td>
+                                                        <td data-label="DisponibleASolicitar">
+                                                            <div class="slds-truncate">{medica.DisponibleASolicitar}</div>
+                                                        </td>
+                                                        <td data-label="ExistenciaDeUnidad">
+                                                            <div class="slds-truncate">0</div>
+                                                        </td>
+                                                        <td data-label="DisponibleEnCenadi">
+                                                            <div class="slds-truncate">0</div>
+                                                        </td>
+                                                        <td data-label="EnTransito">
+                                                            <div class="slds-truncate">0</div>
+                                                        </td>
+                                                        <td data-label="Cantidad">
+                                                            <lightning-input
+                                                                    type="number"
+                                                                    class="fields" 
+                                                                    variant="label-hidden" 
+                                                                    label="Cantidad" 
+                                                                    name="Cantidad" 
+                                                                    value={medica.Cantidad} 
+                                                                    data-id={medica.Clave} 
+                                                                    data-element="input-field"
+                                                                    onchange={handleOnChange}>
+                                                            </lightning-input> 
+                                                            <template if:true={medica.PiezaPorPaquete}>
+                                                                <span class="paquete-style">Piezas Por Paquete: {medica.PiezaPorPaquete}</span>
+                                                            </template>
+                                                        </td>
+                                                        <td data-label="Action">
+                                                            <lightning-button-icon icon-name="action:approval" data-msg="Namaste" alternative-text="Approval" title="Approved" variant="error" data-id={medica.Clave} onclick={handleAgregarInsumo}></lightning-button-icon>
+                                                        </td>
+                                                </tr>
+                                            </template>
+                                        
+                                        </tbody>
+                                    </template>
+                                    <template if:true={isPedidos}>
+                                        <thead>
+                                            <tr class="slds-line-height_reset">
+                                            <template for:each={columns} for:item="col">
+                                                    <th class="" scope="col" key={col.key}>
+                                                        <div class="slds-truncate" title={col.label}>
+                                                            {col.label}
+                                                        </div>
+                                                    </th>
+                                            </template>
+                                            </tr>
+                                        </thead>
+                                        <template for:each={dpnCarrito} for:item="pedidos">
+                                            <!-- <div key={pedidos.Id}>
+                                                {pedidos.Descripcion}
+                                            </div> -->
+                                            <tr class="slds-hint-parent" key={pedidos.Id} data-id={pedidos.Clave}>
+                                                <th data-label="Descripcion" scope="row">
+                                                    <div class="slds-truncate">{pedidos.Descripcion}</div>
+                                                </th>
+                                                <td data-label="DPN">
+                                                    <div class="slds-truncate">{pedidos.DPN}</div>
+                                                </td>
+                                                <td data-label="Validado">
+                                                    <div class="slds-truncate">{pedidos.CantidadValidadaAcumulada}</div>
+                                                </td>
+                                                <td data-label="DisponibleEnDpn">
+                                                    <div class="slds-truncate">{pedidos.DisponibleEnDpn}</div>
+                                                </td>
+                                                <td data-label="DisponibleASolicitar">
+                                                    <div class="slds-truncate">{pedidos.DisponibleASolicitar}</div>
+                                                </td>
+                                                <td data-label="ExistenciaDeUnidad">
+                                                    <div class="slds-truncate">0</div>
+                                                </td>
+                                                <td data-label="DisponibleEnCenadi">
+                                                    <div class="slds-truncate">0</div>
+                                                </td>
+                                                <td data-label="EnTransito">
+                                                    <div class="slds-truncate">0</div>
+                                                </td>
+                                                <td data-label="Cantidad">
+                                                    <div class="slds-truncate">{pedidos.Cantidad}</div>
+                                                </td>
+                                                <td data-label="Action">
+                                                    <lightning-button-icon icon-name="action:delete"  alternative-text="Delete" title="Delete" variant="error" data-id={pedidos.Clave} onclick={handleRemovePedidos}></lightning-button-icon>
+                                                </td>
+                                            </tr>
+                                        </template>
+                                    </template>
+
+                                </template>
+                            </table>
+                        </div>
+                    </div>
+                </template>
+                <template if:false={tamañoValidoDeDPN}>
+                    <div class="slds-align_absolute-center slds-p-around_small option-text">
+                        <b>La Unidad Médica seleccionada NO cuenta con una DPN activa. Contacta al administrador para más información</b>
+                    </div>
+                </template>
+            </template>
+
+            <template if:false={mostrarOcultarTabla}>
+                <div class="slds-align_absolute-center slds-p-around_small option-text">
+                    <b>No se ha seleccionado una Unidad Médica</b>
+                </div>
+            </template>
+        </div>
+   </template>
+</template>

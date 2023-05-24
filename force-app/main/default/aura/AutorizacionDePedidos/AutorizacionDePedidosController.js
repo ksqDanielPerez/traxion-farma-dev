@@ -285,6 +285,7 @@
     },
 
     handleQuantityToApprove : function(component, event, helper) {
+
         const amountToModify = component.get('v.amountToModify');
         const oliToModify = component.get('v.oliToModify');
         const { Cantidad_Aprobada__c = 0 } = oliToModify;
@@ -293,6 +294,14 @@
         const disableModifyContinue = !amountToModify || amountToModify > Cantidad_Aprobada__c || amountToModify == 0;
         component.set('v.disableModifyContinue', isEmptySelModReason || disableModifyContinue); 
         if (disableModifyContinue) component.set('v.amountToModify', null);
+
+
+        // const amountToModify = component.get('v.amountToModify');
+        // const oliToModify = component.get('v.oliToModify');
+        // const { Cantidad_Aprobada__c = 0 } = oliToModify;
+        // const disableModifyContinue = !amountToModify || amountToModify > Cantidad_Aprobada__c || amountToModify == 0;
+        // component.set('v.disableModifyContinue', disableModifyContinue); 
+        // if (disableModifyContinue) component.set('v.amountToModify', null);
     },
 
     killModalDetallesOrden : function(component){

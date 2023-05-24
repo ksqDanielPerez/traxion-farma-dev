@@ -1,0 +1,72 @@
+<template>
+  <lightning-modal-header label={name}></lightning-modal-header>
+  <lightning-modal-body>
+
+    <div if:true={isDataLoading} style="height: 200px; position:relative">
+      <div>
+          <lightning-spinner variant="base" size="medium" alternative-text="Loading..."></lightning-spinner>
+      </div>
+    </div>    
+
+    <div if:false={isDataLoading}>
+      <div class="content product-main-content">
+        <div>
+          <p class="content-label">Codigo del producto</p>
+          <p>{mproductCode}</p>
+        </div>
+        <div>
+          <p class="content-label">Partida Presupuestal</p>
+          <p>{budget}</p>
+        </div>
+        <div>
+          <p class="content-label">Clasificación SICORA</p>
+          <p>{classificationSicora}</p>
+        </div>
+        <div>
+          <p class="content-label">Clasificación Simple</p>
+          <p>{classificationSimple}</p>
+        </div>
+        <div class="content content-description">
+          <p class="content-label">Descripción</p>
+          <p>{description}</p>
+        </div>
+      </div>
+      <hr class="separator"/>
+      <div class="content product-program-content">
+        <div>
+          <p class="content-label">Código del Programa</p>
+          <p>{programCode}</p>
+        </div>
+        <div>
+          <p class="content-label">Nombre del Programa</p>
+          <p>{programName}</p>
+        </div>
+        <div>
+          <p class="content-label">Inventario del Programa</p>
+          <p>{programInventory}</p>
+        </div>
+      </div>
+      <hr class="separator"/>
+      <div class="content product-subalmacen-content">
+        <div>
+          <p class="content-label">Número de Subalmacen</p>
+          <p>{subalmacenNo}</p>
+        </div>
+        <div>
+          <p class="content-label">Nombre del Subalmacen</p>
+          <p>{subalmacenName}</p>
+        </div>
+      </div>
+    </div>
+  </lightning-modal-body>
+  <lightning-modal-footer>
+      <!-- <div class="slds-m-top_small slds-align_absolute-center">
+          <lightning-button
+              variant="Neutral"
+              label="Cancel and close"
+              class="slds-m-left_x-small"
+              onclick={handleClose}>
+          </lightning-button>
+      </div> -->
+  </lightning-modal-footer>
+</template>

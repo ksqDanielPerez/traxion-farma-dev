@@ -1,99 +1,189 @@
 <template>
+
   <div class="container">
     <div class="slds-p-around_none slds-m-top_x-small slds-m-bottom_medium slds-m-horizontal_none">
       <lightning-layout multiple-rows>
         <lightning-layout-item size="4" padding="around-small">
-          <!-- <c-pedido-ordinario></c-pedido-ordinario> -->
           <div class="custom-box slds-box slds-p-around_medium slds-text-align_center">
             <div class="grid" style={pedidoOrdinarioStyle} onclick={seleccionarPedidoOrdinario}>
-              <div>
-                <lightning-icon size="small" icon-name="utility:fulfillment_order" title="fulfillment_order ">
-                </lightning-icon><span class="title">Ordinario</span>
-                <template if:false={isPedidoDay}>
-                  <span class="no-disponible">No disponible</span>
+                <lightning-layout-item size="12" padding="around-small">
+                  <lightning-icon size="small" icon-name="utility:fulfillment_order" title="fulfillment_order ">
+                  </lightning-icon><span class="title"> Ordinario</span>
+                  <template if:false={isPedidoDay}>
+                    <span class="no-disponible">No disponible</span>
+                  </template>
+                </lightning-layout-item>
+
+                <template if:false={enableButtons.enable}>
+                  <lightning-layout-item size="12" padding="around-small">
+                    <c-avonni-button-dialog
+                        label="Ver Pedidos Ordinarios"
+                        variant="brand"
+                        disabled="true"
+                    >
+                        <c-avonni-dialog dialog-name="dialog">
+                            <p slot="title" class="slds-modal__title slds-hyphenate">
+                                Modal Header (Slot Title)
+                            </p>
+                            <div>
+                                <c-avonni-calendar min={minDate} max={maxDate} disabled-dates={disabledDates} value={value} selection-mode="multiple" disabled={disableCalendar} onchange={handleDateChange}>
+                                </c-avonni-calendar>
+                            </div>
+                            <div slot="footer">
+                                <lightning-button label="Cancel"></lightning-button>
+                                <lightning-button
+                                    variant="brand"
+                                    class="slds-p-left_x-small"
+                                    label="Save"
+                                ></lightning-button>
+                            </div>
+                        </c-avonni-dialog>
+                    </c-avonni-button-dialog>
+                  </lightning-layout-item>
+
+                  <template if:false={isPedidoDay}>
+                    <lightning-layout-item size="12" padding="around-small">
+                      <small><b>Próxima fecha de apertura</b></small>
+                      <p><small>{proximaFecha}</small></p>
+                    </lightning-layout-item>
+                  </template>
+
+                  <template if:true={isPedidoDay}>
+                    <lightning-layout-item size="12" padding="around-small">
+                      <button class="slds-button slds-button_brand slds-button_stretch slds-size_6-of-12" onclick={handleSolicitarPedidoOrdinario} disabled={enableButtons.enable}>Solicitar Pedido</button>
+                    </lightning-layout-item>
+                  </template>
+
+                  <lightning-layout-item size="12" padding="around-small">
+                    <button class="slds-button slds-button_neutral slds-button_stretch slds-size_6-of-12" onclick={handleCalendario} disabled={enableButtons.enable}>Calendario</button>
+                  </lightning-layout-item>
                 </template>
 
-                <!-- Aqui esta la habilitacion de solicitar pedidos ordinarios -->
-              </div>
-              
-              <template if:false={isPedidoDay}>
-                <small class="pedidos-generados"><b>{pedidos}</b></small>
-                <small><b>Próxima fecha de apertura</b></small>
-                <small>{fecha}</small>
-                <small>{hora}</small>
-              </template>
-
-              <template if:true={isPedidoDay}>
-                <button class="calendario-button" onclick={handleSolicitarPedidoOrdinario}>
-                  Solicitar Pedido
-                </button>
-              </template>
-
-              <div>
-                <!-- Aqui esta el calendario -->
-                <!--  -->
-                <button class="calendario-button" onclick={handleCalendario}>
-                  Calendario
-                </button>
-              </div>
+                <template if:true={enableButtons.enable}>
+                  <strong>No se ha seleccionado una Unidad Médica</strong>
+                </template>
             </div>
           </div>
         </lightning-layout-item>
+
         <lightning-layout-item size="4" padding="around-small">
           <div class="custom-box slds-box slds-p-around_medium slds-text-align_center">
-            <!-- <c-pedido-no-ordinario></c-pedido-no-ordinario> -->
-            <div class="custom-box slds-box slds-p-around_medium slds-text-align_center">
-              <div class="grid" style={pedidoNoOrdinarioStyle} onclick={seleccionarPedidoNoOrdinario}>
-                <div>
-                  <lightning-icon size="small" icon-name="utility:fulfillment_order" title="fulfillment_order ">
-                  </lightning-icon><span class="title">No Ordinario</span>
-                </div>
-                <small class="pedidos-generados"><b>{pedidos}</b></small>
-                <small class="white">...</small>
-                <small class="white">...</small>
-                <div>
-                  <button class="calendario-button" onclick={handleSolicitarPedidosNoOrdinario}>
-                    Solicitar Pedido
-                  </button>
-                </div>
-              </div>
+            <div class="grid" style={pedidoNoOrdinarioStyle} onclick={seleccionarPedidoNoOrdinario}>
+
+              <lightning-layout-item size="12" padding="around-small">
+                <lightning-icon size="small" icon-name="utility:fulfillment_order" title="fulfillment_order ">
+                </lightning-icon><span class="title"> No Ordinario</span>
+              </lightning-layout-item>
+
+              <template if:false={enableButtons.enable}>
+                <lightning-layout-item size="12" padding="around-small">
+                  <c-avonni-button-dialog
+                      label="Ver Pedidos No Ordinarios"
+                      variant="brand"
+                      disabled="true"
+                  >
+                      <c-avonni-dialog dialog-name="dialog">
+                          <p slot="title" class="slds-modal__title slds-hyphenate">
+                              Modal Header (Slot Title)
+                          </p>
+                          <div>
+                              <c-avonni-calendar min={minDate} max={maxDate} disabled-dates={disabledDates} value={value} selection-mode="multiple" disabled={disableCalendar} onchange={handleDateChange}>
+                              </c-avonni-calendar>
+                          </div>
+                          <div slot="footer">
+                              <lightning-button label="Cancel"></lightning-button>
+                              <lightning-button
+                                  variant="brand"
+                                  class="slds-p-left_x-small"
+                                  label="Save"
+                              ></lightning-button>
+                          </div>
+                      </c-avonni-dialog>
+                  </c-avonni-button-dialog>
+                </lightning-layout-item>
+
+                <lightning-layout-item padding="around-small" size="12">
+                  <button class="slds-button slds-button_brand slds-button_stretch slds-size_6-of-12" onclick={handleSolicitarPedidosNoOrdinario} disabled={enableButtons.enable}>Solicitar Pedido</button>
+                </lightning-layout-item>
+              </template>
+
+              <template if:true={enableButtons.enable}>
+                <strong>No se ha seleccionado una Unidad Médica</strong>
+              </template>
             </div>
           </div>
         </lightning-layout-item>
+
         <lightning-layout-item size="4" padding="around-small">
           <div class="custom-box slds-box slds-p-around_medium slds-text-align_center">
-            <div class="custom-box slds-box slds-p-around_medium slds-text-align_center">
-              <div class="grid" style={pedidoEspecialStyle} onclick={seleccionarPedidoEspecial}>
-                <div>
-                  <lightning-icon size="small" icon-name="utility:fulfillment_order" title="fulfillment_order ">
-                  </lightning-icon>
-                  <span class="title">Programas Especiales</span>
-                </div>
-                <small class="pedidos-generados"><b>{pedidos}</b></small>
-                <small class="white"><b>...</b></small>
-                <small class="white">...</small>
-                <div>
-                  <template if:true={isProgramasEspeciales}>
-                    <button class="calendario-button" onclick={handlePedidoEspeciales}>
-                      Solicitar Pedido
-                    </button>
-                  </template>
-                </div>
-              </div>
+            <div class="grid" style={pedidoEspecialStyle} onclick={seleccionarPedidoEspecial}>
+              <lightning-layout-item size="12" padding="around-small">
+                <lightning-icon size="small" icon-name="utility:fulfillment_order" title="fulfillment_order ">
+                </lightning-icon><span class="title"> Programas Especiales</span>
+              </lightning-layout-item>
+
+              <template if:false={enableButtons.enable}>
+                <lightning-layout-item size="12" padding="around-small">
+                  <c-avonni-button-dialog
+                      label="Ver Pedidos de Programas"
+                      variant="brand"
+                      disabled="true"
+                  >
+                      <c-avonni-dialog dialog-name="dialog">
+                          <p slot="title" class="slds-modal__title slds-hyphenate">
+                              Modal Header (Slot Title)
+                          </p>
+                          <div>
+                              <c-avonni-calendar min={minDate} max={maxDate} disabled-dates={disabledDates} value={value} selection-mode="multiple" disabled={disableCalendar} onchange={handleDateChange}>
+                              </c-avonni-calendar>
+                          </div>
+                          <div slot="footer">
+                              <lightning-button label="Cancel"></lightning-button>
+                              <lightning-button
+                                  variant="brand"
+                                  class="slds-p-left_x-small"
+                                  label="Save"
+                              ></lightning-button>
+                          </div>
+                      </c-avonni-dialog>
+                  </c-avonni-button-dialog>
+                </lightning-layout-item>
+
+                <lightning-layout-item padding="around-small" size="12">                
+                  <button class="slds-button slds-button_brand slds-button_stretch slds-size_6-of-12" onclick={handlePedidoEspeciales} disabled={enableButtons.enable}>Solicitar Pedido</button>
+                </lightning-layout-item>
+              </template>
+
+              <template if:true={enableButtons.enable}>
+                <strong>No se ha seleccionado una Unidad Médica</strong>
+              </template>
             </div>
           </div>
         </lightning-layout-item>
       </lightning-layout>
     </div>
   </div>
+  
   <lightning-layout>
-    <lightning-layout-item size="12" padding="around-small">
+    <lightning-layout-item size="12" >
       <template if:true={isCalendar}>
         <div class="calendar">
-          <c-avonni-calendar value={value} selection-mode="multiple" >
-          </c-avonni-calendar>
+          <div class="calendar-close-icon">
+            <lightning-icon
+              class="slds-float_right "
+              icon-name="utility:close"
+              size="small"
+              onclick={handleCerrarCalendario}
+              alternative-text="Indicates close">
+            </lightning-icon>
+          </div>
+          <div class="slds-p-around_medium calendar-content">
+            <c-avonni-calendar min={minDate} max={maxDate} disabled-dates={disabledDates} value={value} selection-mode="multiple" disabled={disableCalendar} onchange={handleDateChange}>
+            </c-avonni-calendar>
+          </div>
         </div>
       </template>
     </lightning-layout-item>
   </lightning-layout>
+  
 </template>

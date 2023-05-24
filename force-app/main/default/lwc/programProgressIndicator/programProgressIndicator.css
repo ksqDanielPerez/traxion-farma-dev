@@ -1,0 +1,15 @@
+:host {
+  --green: #8AC6BF;
+  --darkGreen: #619a94;
+}
+
+@font-face {
+  font-family: 'raleway';
+  src: url('/resource/ASSETS/ASSETS/Raleway-Regular.ttf') format('TrueType');
+}
+
+*{
+  font-family: 'raleway';
+  font-size: 0.938rem;
+  pointer-events: none;
+}

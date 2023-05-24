@@ -1,0 +1,26 @@
+:host {
+  --green: #8AC6BF;
+  --darkGreen: #619a94;
+}
+
+@font-face {
+  font-family: 'raleway';
+  src: url('/resource/ASSETS/ASSETS/Raleway-Regular.ttf') format('TrueType');
+}
+
+*{
+  font-family: 'raleway';
+  font-size: 0.938rem;
+}
+
+.calendar-input {
+  margin-left: auto;
+  margin-right: 0;
+  width: 21rem;
+}
+
+.combobox-container {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}

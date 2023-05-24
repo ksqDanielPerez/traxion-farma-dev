@@ -200,9 +200,12 @@ export default class UnidadMedicaView extends LightningElement {
 
         if(isNoOrdinario || this.tipoDePedido == 'Ordinario'){ 
             console.log("Printing is created");
-            const isCreated = await this.handleGeneracionDePedido(this.carrito);
-            console.log(isCreated);
-            if(!isCreated){ return; }
+            // const isCreated = await this.handleGeneracionDePedido(this.carrito);
+            // console.log(isCreated);
+            // if(!isCreated){ return;}
+
+            console.log(JSON.stringify(this.carrito));
+            console.log(JSON.parse(JSON.stringify(this.carrito)));
 
             const order = await crearOrden({payload: JSON.stringify([this.carrito])}).then(result =>{
                 return result;
@@ -228,6 +231,8 @@ export default class UnidadMedicaView extends LightningElement {
             setTimeout(() => {
                 location.reload();
             }, 1500);  
+
+
         }else{
             let isTipoDePedido = this.tipoDePedido == 'No Ordinario' ? '- Debes seleccionar un tipo de pedido.': ''; 
             LightningAlert.open({

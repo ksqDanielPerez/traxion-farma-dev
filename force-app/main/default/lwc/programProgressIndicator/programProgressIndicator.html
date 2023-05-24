@@ -1,0 +1,14 @@
+<template>
+  <div class="slds-theme_default">
+    <div class="slds-m-bottom_medium">
+        <lightning-progress-indicator type="path" current-step={selectedStep}>
+            <lightning-progress-step label="Agregar Insumos" onstepfocus={selectStep1} value="Step1">
+            </lightning-progress-step>
+            <lightning-progress-step label="Unidades Médicas" onstepfocus={selectStep2} value="Step2">
+            </lightning-progress-step>
+            <lightning-progress-step label="Insumos por Unidad Médica" onstepfocus={selectStep3} value="Step3">
+            </lightning-progress-step>
+        </lightning-progress-indicator>
+    </div>
+</div>
+</template>

@@ -23,11 +23,15 @@
     <aura:attribute name="searchPhrase" type="String" />
     <aura:attribute name="isLoading" type="Boolean" default="false" />
     <aura:attribute name="deliveryNumber" type="String" />
-    <aura:attribute name="remisionNumber" type="String" /> 
+    <aura:attribute name="remisionNumber" type="String" />
+    
+    <!-- <aura:attribute name="showHideFiltros" type="Boolean" default="false" /> -->
+
     <aura:attribute name="tipoDeClaveObj" type="Object" />
     <aura:attribute name="tipoDeUMUObj" type="Object" />
     <aura:attribute name="tipoDeEstadoObj" type="Object" />
     <aura:attribute name="tipoDePedidoObj" type="Object" />
+
     <aura:attribute name="showHideFiltros" type="Object" />
      
     
@@ -70,6 +74,42 @@
         </aura:set>
 
         <p class="slds-p-horizontal_small"> 
+
+            <!-- <div class="slds-size_12-of-12 mc-card-filter slds-p-around_medium" style="display:none" id="divFiltros">
+                <lightning:button variant="brand" label="LIMPIAR FILTROS" title="Brand action" onclick="{!c.limpiarFiltros}" />
+                <lightning:layout horizontalAlign="space" verticalAlign="stretch" multipleRows="true">
+                    <lightning:layoutItem class="mc-form" size="12" flexibility="auto"  title="Claves" >
+                        <h4 class="slds-p-top_small" style="margin-bottom: 0px;">CLAVES</h4>
+                        <c:FiltrarPedidosMultiSelect padreFiltroClaves="{!this}" msname="Filtrar Claves" msoptions="{!v.msClaves}" type="clave"/>
+                    </lightning:layoutItem>
+
+                    <lightning:layoutItem class="mc-form" size="12" flexibility="auto" title="Unidad Médica" >
+                        <h4 class="slds-p-top_small" style="margin-bottom: 0px;">UNIDAD MEDICA</h4>
+                        <c:FiltrarPedidosMultiSelect padreFiltroUnidadMedica="{!this}" msname="Filtrar UMUs" msoptions="{!v.msUMUs}" type="umu"/>
+                    </lightning:layoutItem>
+
+                    <lightning:layoutItem class="mc-form" size="12" flexibility="auto" title="Estados" >
+                        <h4 class="slds-p-top_small" style="margin-bottom: 0px;">ESTADOS</h4>
+                        <c:FiltrarPedidosMultiSelect padreFiltroEstados="{!this}" msname="Filtrar Estados" msoptions="{!v.msEstados}" type="estado"/>
+                    </lightning:layoutItem>
+
+                    <lightning:layoutItem class="mc-form" size="12" flexibility="auto" title="Pedidos" >
+                        <h4 class="slds-p-top_small" style="margin-bottom: 0px;">PEDIDOS</h4>
+                        <c:FiltrarPedidosMultiSelect padreFiltroPedidos="{!this}" msname="Filtrar Pedidos" msoptions="{!v.msPedidos}" type="pedido"/>
+                    </lightning:layoutItem>
+
+                    <lightning:layoutItem class="mc-form" size="12" flexibility="auto" title="Transportes" >
+                        <h4 class="slds-p-top_small" style="margin-bottom: 0px;">TRANSPORTES</h4>
+                        <c:FiltrarPedidosMultiSelect padreFiltroTransportes="{!this}" msname="Filtrar Transportes" msoptions="{!v.msTransportes}" type="transporte"/>
+                    </lightning:layoutItem>
+
+                    <div class="slds-align_absolute-center" >
+                        <lightning:button variant="brand-outline" label="CERRAR" title="Brand action" onclick="{!c.handleAbrirCerrarFiltros}" />
+                        <lightning:button variant="brand" label="APLICAR FILTROS" title="Brand action" onclick="{!c.handleAplicarFiltros}" />
+                    </div>
+                </lightning:layout>
+            </div>  -->
+
             <div class="slds-size_12-of-12 slds-p-around_small mc-card-filter">
                 <lightning:button variant="brand-outline" label="LIMPIAR FILTROS" title="Brand action" onclick="{!c.limpiarFiltros}" />
 
@@ -173,6 +213,80 @@
                     </lightning:layout>
                 </aura:if>
             </div>  
+
+
+            <!-- <div class="slds-size_1-of-1 slds-p-bottom_small" style="display:block" id="divBtnMuestraFiltros">
+                <lightning:layout multipleRows="false">
+                    <lightning:layoutItem size="6">
+                        <lightning:button variant="brand" label="SELECCIONAR Y APLICAR FILTROS DETALLADOS" title="Brand action" onclick="{!c.handleAbrirCerrarFiltros}" />
+                    </lightning:layoutItem>        
+
+                    <lightning:layoutItem size="6">
+                        <lightning:layout multipleRows="false">
+
+                            <lightning:layoutItem size="12" class="slds-p-bottom_small slds-p-right_xx-small" alignmentBump="left">
+                                <lightning:button class="slds-float_right" variant="brand-outline" label="MOSTRAR FILTROS POR PEDIDOS" title="Brand action" onclick="{!c.handleShowHideFiltros}" />
+                            </lightning:layoutItem>
+
+                            <lightning:layoutItem size="12" class="slds-p-bottom_small slds-p-right_xx-small" alignmentBump="left">
+                                <lightning:button class="slds-float_right" variant="brand-outline" label="MOSTRAR FILTROS POR PEDIDOS" title="Brand action" onclick="{!c.handleShowHideFiltros}" />
+                            </lightning:layoutItem>
+                        </lightning:layout>
+
+                        <aura:if isTrue="{!v.showHideFiltros}">
+                            <lightning:layout multipleRows="true">
+                                <lightning:layoutItem class="slds-p-bottom_small" alignmentBump="left">
+                                    <lightning:input
+                                        variant="label-hidden"
+                                        placeholder="Número de Pedido"
+                                        class="slds-p-right_small slds-float_right"
+                                        type="search"
+                                        value="{!v.searchPhrase}"
+                                        onchange="{!c.onChangeSearchPhrase}" />
+                                </lightning:layoutItem>
+                                <lightning:layoutItem class="slds-p-bottom_small slds-p-right_xx-small">
+                                    <lightning:button
+                                        label="Buscar"
+                                        variant="neutral"
+                                        onclick="{! c.handleSearch }" />
+                                </lightning:layoutItem>
+
+                                <lightning:layoutItem class="slds-p-bottom_small" alignmentBump="left">
+                                    <lightning:input
+                                        variant="label-hidden"
+                                        placeholder="Número de Delivery"
+                                        class="slds-p-right_small slds-float_right"
+                                        type="search"
+                                        value="{!v.deliveryNumber}"
+                                        onchange="{!c.onChangeSearchPhrase}" />
+                                </lightning:layoutItem>
+                                <lightning:layoutItem class="slds-p-bottom_small slds-p-right_xx-small">
+                                    <lightning:button
+                                        label="Buscar"
+                                        variant="neutral"
+                                        onclick="{! c.handleSearch }" />
+                                </lightning:layoutItem>
+
+                                <lightning:layoutItem alignmentBump="left">
+                                    <lightning:input
+                                        variant="label-hidden"
+                                        placeholder="Número de Remisión"
+                                        class="slds-p-right_small slds-float_right"
+                                        type="search"
+                                        value="{!v.searchPhrase}"
+                                        onchange="{!c.onChangeSearchPhrase}" />
+                                </lightning:layoutItem>
+                                <lightning:layoutItem class="slds-p-right_xx-small">
+                                    <lightning:button
+                                        label="Buscar"
+                                        variant="neutral"
+                                        onclick="{! c.handleSearch }" />
+                                </lightning:layoutItem>
+                            </lightning:layout>
+                        </aura:if>
+                    </lightning:layoutItem>
+                </lightning:layout>
+            </div> -->
 
             <div class="slds-size_1-of-1">
                 <aura:if isTrue="{! v.isLoading }">
