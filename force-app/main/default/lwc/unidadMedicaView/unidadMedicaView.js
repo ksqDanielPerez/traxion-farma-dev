@@ -216,11 +216,25 @@ export default class UnidadMedicaView extends LightningElement {
             let ordenId = order[0].Id;
             console.log(ordenId);
             
-            generarPdf({idOrden: ordenId}).then(result =>{
-                console.log('Se ha generado exitosamente' + result);
+            // generarPdf({idOrden: ordenId}).then(result =>{
+            //     console.log('Se ha generado exitosamente' + result);
+            // }).catch(error =>{
+            //     console.log('An error has occured: ' + error.getMessage());
+            // })
+
+            const orderIds = [];
+
+            order.forEach((ord) => {
+                orderIds.push(ord.Id);
+            });
+
+            generarPdf({orderIds: orderIds}).then(result => {
+                console.log('Se ha generado exitosamente: ');
+                console.log(JSON.parse(JSON.stringify(result)));
             }).catch(error =>{
                 console.log('An error has occured: ' + error.getMessage());
-            })
+            });
+
             if(!this.isObjEmpty(this.fileData)){
                 this.fileData.recordId = order[0].Id;
                 const {filename, base64, recordId} = this.fileData;

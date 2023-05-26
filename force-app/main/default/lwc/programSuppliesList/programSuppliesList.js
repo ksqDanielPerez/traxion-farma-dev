@@ -231,7 +231,7 @@ export default class ProgramSuppliesList extends NavigationMixin(LightningElemen
     filteredData.forEach(function(data){
       const {clavepresupuestal = null} = data;
       if(clavepresupuestal){
-        
+        const quantityInput = self.template.querySelector('lightning-input[data-id="' + data.clavedeinsumo + '"][data-clavepresupuestal="' + data.clavepresupuestal.substring(1).trim()  + '"]');
         quantityInput.value = data.cantidadaenviar;
         console.log("Printing cantidad");
         console.log(JSON.parse(JSON.stringify(quantityInput)));
@@ -555,7 +555,10 @@ export default class ProgramSuppliesList extends NavigationMixin(LightningElemen
   }
 
   validateMultiplo(multiplo, value) {
+    console.log('multiplo' + multiplo);
     const arrayMultiplo = multiplo.split(",");
+    console.log('array Multiplo' + arrayMultiplo)
+
     if (arrayMultiplo.length > 1) {
       console.log('multiple');
       return arrayMultiplo.some((element) => value % element === 0);
@@ -820,13 +823,26 @@ export default class ProgramSuppliesList extends NavigationMixin(LightningElemen
         console.log('Pedido: ');
         console.log(JSON.stringify(result));
 
-        result.forEach(order => {
-          generatePDF({idOrden: order.Id}).then(result => {
-            console.log('Se ha generado exitosamente: ');
-            console.log(JSON.parse(JSON.stringify(result)));
-          }).catch(error =>{
-            console.log('An error has occured: ' + error.getMessage());
-          });
+        // result.forEach(order => {
+        //   generatePDF({idOrden: order.Id}).then(result => {
+        //     console.log('Se ha generado exitosamente: ');
+        //     console.log(JSON.parse(JSON.stringify(result)));
+        //   }).catch(error =>{
+        //     console.log('An error has occured: ' + error.getMessage());
+        //   });
+        // });
+
+        const orderIds = [];
+
+        result.forEach((order) => {
+          orderIds.push(order.Id);
+        });
+
+        generatePDF({orderIds: orderIds}).then(result => {
+          console.log('Se ha generado exitosamente: ');
+          console.log(JSON.parse(JSON.stringify(result)));
+        }).catch(error =>{
+          console.log('An error has occured: ' + error.getMessage());
         });
 
         console.log('OrderId');
