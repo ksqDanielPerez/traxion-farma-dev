@@ -154,6 +154,60 @@ public with sharing class UserContactClass {
         dpnLineItem = Database.query(dpnLineItemQuery); 
         return dpnLineItem;
     } 
+    
+    @AuraEnabled(cacheable=true)    
+    public static List<DPN_Line_Item__c> getDpnNoOrdinary(){  
+        List<DPN_Line_Item__c> dpnLineItem = new List<DPN_Line_Item__c>();
+
+        Boolean userIsResponsableDeFarmacia = checkIfUserIsResponsableDeFarmaciaAlmacen();
+
+        Id contactId = getContactIdFromUser();
+
+        // Obtener DPN relacionada e items 
+        List<DPN__c> dpnNoOrdinaria = [
+            SELECT Id, Name 
+            FROM DPN__c 
+            WHERE Estatus__c =: 'No Ordinario'
+            LIMIT 1
+        ]; 
+
+        if(dpnNoOrdinaria.size() == 0){
+            return dpnLineItem;
+        }
+
+        Id dpnNoOrdinariaId = dpnNoOrdinaria[0].Id;
+        String dpnLineItemQuery = 'SELECT Id, Name, DPN__c, L_mite_Mensual__c, Consumido__c, Product__r.Product_Code_ID__c, Product__r.Name';
+        dpnLineItemQuery += ' FROM DPN_Line_Item__c';
+        dpnLineItemQuery += ' WHERE DPN__c =: dpnNoOrdinariaId'; 
+         
+        if(userIsResponsableDeFarmacia){ 
+            Contact con = [
+                SELECT Id, Name, Acceso_a_claves_por_clasificaci_n__c
+                FROM Contact
+                WHERE Id =: contactId
+                    LIMIT 1
+            ]; 
+            String limiteDeResponsableDeFarmacia = '';
+            String accesoaClavesPorClasificacion = con.Acceso_a_claves_por_clasificaci_n__c;
+            switch on accesoaClavesPorClasificacion {
+                when 'Medicina' {
+                    limiteDeResponsableDeFarmacia = RDF_MEDICINA;
+                }
+                when 'Material de Curación' {
+                    limiteDeResponsableDeFarmacia = RDF_MATERIAL_DE_CURACION;
+                }
+                when else {
+                    limiteDeResponsableDeFarmacia = '';
+                }
+            }
+            if(String.isNotBlank(limiteDeResponsableDeFarmacia)){
+                dpnLineItemQuery += ' AND Product__r.Simple_Classification__c =: limiteDeResponsableDeFarmacia'; 
+            } 
+        }
+
+        dpnLineItem = Database.query(dpnLineItemQuery); 
+        return dpnLineItem;
+    } 
 
     @AuraEnabled
     public static String getDisponibilidadSkus(String jsonData){
@@ -161,14 +215,65 @@ public with sharing class UserContactClass {
         return JSON.serialize(ServicioPaqueteo.obtenerDisponibilidad(skus));
     }
 
+
     @AuraEnabled
-    public static String checkGeneracionDePedido(String jsonData){
-        
+    public static String checkGeneracionDePedido(List<String> orderIdList){
+
+        List<Order__c> orderList = [
+            SELECT Id, Name, CreatedDate, UMU__c, UMU__r.UMU__c, Pedido__c, Pedido__r.Fecha_Limite_de_Entrega__c, Order_Number__c, 
+                Folio_del_Pedido__c, Tipo_de_Pedido__c, 
+                (
+                    SELECT CreatedDate, Name, Product__c, Product__r.Product_Code_ID__c, Cantidad_Solicitada__c, Cantidad_Autorizada__c
+                    FROM Order_Line_Items__r
+                )
+            FROM Order__c 
+            WHERE Id IN: orderIdList
+        ];
 
         List<ServicioGeneracionPedido.Envio> enviosList = new List<ServicioGeneracionPedido.Envio>();
 
-        ServicioGeneracionPedido.Envio envio = new ServicioGeneracionPedido.Envio();
-        
+        for(Order__c ord : orderList){
+
+            ServicioGeneracionPedido.Envio envio = new ServicioGeneracionPedido.Envio();
+            envio.client_id = ord.Order_Number__c;
+            envio.external_id = ord.Order_Number__c;
+            envio.document_number = ord.Order_Number__c;
+            envio.early_delivery_date = String.valueOf(ord.CreatedDate.addDays(1));
+            envio.early_ship_date = String.valueOf(ord.CreatedDate.addDays(1));
+            envio.late_delivery_date = String.valueOf(ord.Pedido__r.Fecha_Limite_de_Entrega__c);
+            envio.late_ship_date = String.valueOf(ord.Pedido__r.Fecha_Limite_de_Entrega__c);
+            envio.remision = ord.Order_Number__c;
+            envio.shipment_number = ord.Order_Number__c;
+            envio.entered_date = String.valueOf(ord.CreatedDate);
+            envio.ship_address = '';
+            envio.customer_date = String.valueOf(ord.CreatedDate);
+            envio.order_type = 'S-OFIC';
+            envio.customer_number = ord.UMU__r.UMU__c;
+            envio.bto_rush = ord.Tipo_de_Pedido__c == 'Urgencia Médica' || ord.Tipo_de_Pedido__c == 'Soporte de Vida' ? '1' : '2';
+
+            List<ServicioGeneracionPedido.Item> itemsList = new List<ServicioGeneracionPedido.Item>();
+            for(Order_Line_Item__c oli : ord.Order_Line_Items__r){
+                ServicioGeneracionPedido.Item item = new ServicioGeneracionPedido.Item();
+                item.order_line = oli.Name;
+                item.entered_date = String.valueOf(ord.CreatedDate);
+                item.product_number = oli.Product__r.Product_Code_ID__c;
+                item.ordered_quantity = String.valueOf(oli.Cantidad_Solicitada__c);
+                item.partial_flag = '1';
+                // item.confirmed_quantity = String.valueOf(oli.Cantidad_Autorizada__c);
+                item.split_case = '1';
+                item.unit_price = '0';
+                itemsList.add(item);
+            } 
+
+            envio.items = itemsList;
+            enviosList.add(envio);
+        }
+
+        String response = JSON.serialize(ServicioGeneracionPedido.crearPedido(enviosList));
+        return JSON.serialize(ServicioGeneracionPedido.crearPedido(enviosList));
+
+        // List<ServicioGeneracionPedido.Envio> enviosList = new List<ServicioGeneracionPedido.Envio>();
+        // ServicioGeneracionPedido.Envio envio = new ServicioGeneracionPedido.Envio();
         // envio.client_id = '123';
         // envio.external_id = 'ABC'; 
         // List<ServicioGeneracionPedido.Item> items = new List<ServicioGeneracionPedido.Item>();
@@ -177,12 +282,26 @@ public with sharing class UserContactClass {
         // item.product_number = 'XYZ';
         // items.add(item);
         // envio.items = items;
-        enviosList.add(envio);
-
+        // enviosList.add(envio);
         // String response = JSON.serialize(ServicioGeneracionPedido.crearPedido(enviosList));
-        // System.debug(response);
-
-        return JSON.serialize(ServicioGeneracionPedido.crearPedido(enviosList));
+        // return JSON.serialize(ServicioGeneracionPedido.crearPedido(enviosList));
     }
+
+    // @AuraEnabled
+    // public static String checkGeneracionDePedido(String jsonData){
+        // List<ServicioGeneracionPedido.Envio> enviosList = new List<ServicioGeneracionPedido.Envio>();
+        // ServicioGeneracionPedido.Envio envio = new ServicioGeneracionPedido.Envio();
+        // envio.client_id = '123';
+        // envio.external_id = 'ABC'; 
+        // List<ServicioGeneracionPedido.Item> items = new List<ServicioGeneracionPedido.Item>();
+        // ServicioGeneracionPedido.Item item = new ServicioGeneracionPedido.Item();
+        // item.order_line = '1';
+        // item.product_number = 'XYZ';
+        // items.add(item);
+        // envio.items = items;
+        // enviosList.add(envio);
+        // String response = JSON.serialize(ServicioGeneracionPedido.crearPedido(enviosList));
+    //     return JSON.serialize(ServicioGeneracionPedido.crearPedido(enviosList));
+    // }
 
 }

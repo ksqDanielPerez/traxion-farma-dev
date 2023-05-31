@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<LightningMessageChannel xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>Canal de mensajes para enviar el tipo de pedido.</description>
+    <isExposed>true</isExposed>
+    <lightningMessageFields>
+        <description>El tipo de pedido es  no ordinario</description>
+        <fieldName>isNoOrdinario</fieldName>
+    </lightningMessageFields>
+    <masterLabel>orderType</masterLabel>
+</LightningMessageChannel>

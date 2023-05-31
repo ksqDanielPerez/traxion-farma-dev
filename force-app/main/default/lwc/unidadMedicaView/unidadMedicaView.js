@@ -1,4 +1,4 @@
-import { LightningElement, wire, api } from 'lwc';
+import { LightningElement, wire, track, api } from 'lwc';
 import { subscribe, MessageContext } from 'lightning/messageService';
 import SET_GENERAR_PEDIDOS_MENU from '@salesforce/messageChannel/set_generar_pedidos_menu__c';
 import umuRecordSelected from '@salesforce/messageChannel/umu_record_selected__c';
@@ -64,7 +64,7 @@ export default class UnidadMedicaView extends LightningElement {
     connectedCallback(){
         this.susbcribeToMessageChannel();
         this.susbcribeToMessageChannelUmu();
-        this.susbcribeToMessageChannelCarrito();      
+        this.susbcribeToMessageChannelCarrito();
     }
 
     handlePedidoNoOrdinario(){
@@ -87,8 +87,6 @@ export default class UnidadMedicaView extends LightningElement {
     handleUmuData(event){
         this.umuData = event.detail;
     }
-
-
 
     handleMessageUmu(message){
 
@@ -181,11 +179,27 @@ export default class UnidadMedicaView extends LightningElement {
     async handleGuardar(){
 
         console.log("Inside handle guardar");
+        console.log(this.numeroOficio);
+        console.log(this.tipoDePedido);
+
+        const button = this.tipoDePedido == 'Ordinario' ? this.template.querySelector('.guardar-btn-ordinario') :  this.template.querySelector('.guardar-btn');
+        button.disabled = true;
 
         if(this.isObjEmpty(this.carrito)){
+            button.disabled = false;
             LightningAlert.open({
                 message: 'Debes tener un insumo añadido.',
-                theme: 'error', 
+                theme: 'error',
+                label: 'Error!',
+            });
+            return;
+        }
+
+        if(this.tipoDePedido != 'Ordinario' && (this.numeroOficio == null || this.numeroOficio == '' )){
+            button.disabled = false;
+            LightningAlert.open({
+                message: 'Debes rellenar el campo Número de Oficio',
+                theme: 'error',
                 label: 'Error!',
             });
             return;
@@ -199,31 +213,14 @@ export default class UnidadMedicaView extends LightningElement {
         this.carrito.justificacion = this.justificacion;
 
         if(isNoOrdinario || this.tipoDePedido == 'Ordinario'){ 
-            console.log("Printing is created");
-            // const isCreated = await this.handleGeneracionDePedido(this.carrito);
-            // console.log(isCreated);
-            // if(!isCreated){ return;}
-
-            console.log(JSON.stringify(this.carrito));
-            console.log(JSON.parse(JSON.stringify(this.carrito)));
 
             const order = await crearOrden({payload: JSON.stringify([this.carrito])}).then(result =>{
                 return result;
             }).catch(error =>{
                 console.log('An error has occured: ' + error.getMessage());
             });
-            
-            let ordenId = order[0].Id;
-            console.log(ordenId);
-            
-            // generarPdf({idOrden: ordenId}).then(result =>{
-            //     console.log('Se ha generado exitosamente' + result);
-            // }).catch(error =>{
-            //     console.log('An error has occured: ' + error.getMessage());
-            // })
 
             const orderIds = [];
-
             order.forEach((ord) => {
                 orderIds.push(ord.Id);
             });
@@ -240,27 +237,36 @@ export default class UnidadMedicaView extends LightningElement {
                 const {filename, base64, recordId} = this.fileData;
                 await uploadFile({base64: base64, filename: filename, recordId: recordId});
             }
+
+            if(this.tipoDePedido == 'Ordinario'){
+                console.log('Inside pedido ordinario');
+                const isCreated = await this.handleGeneracionDePedido(order);
+                console.log(isCreated);
+                if(!isCreated){ return;}
+            }
+
             this.showToast('Success', 'Orden ha sido creada.', 'Success', 'pester');
             
             setTimeout(() => {
                 location.reload();
-            }, 1500);  
-
+            }, 1500);
 
         }else{
             let isTipoDePedido = this.tipoDePedido == 'No Ordinario' ? '- Debes seleccionar un tipo de pedido.': ''; 
+            button.disabled = false;
             LightningAlert.open({
                 message: isTipoDePedido,
-                theme: 'error', 
+                theme: 'error',
                 label: 'Error!',
             });
         }
 
     }
 
-    async handleGeneracionDePedido(carrito) {      
+    async handleGeneracionDePedido(orden) {  
+        const orderIds = orden.map(ord => ord.Id); 
         try {
-            const result = await checkGeneracionDePedido({ jsonData: '' });
+            const result = await checkGeneracionDePedido({ orderIdList: orderIds });
             const parsedResult = JSON.parse(result);
             const { traxion_response = {} } = parsedResult;
             const { completed_succesfully = false } = traxion_response;

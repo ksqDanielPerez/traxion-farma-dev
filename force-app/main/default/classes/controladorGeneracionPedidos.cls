@@ -109,11 +109,13 @@ public without sharing class controladorGeneracionPedidos {
         for(Id umuId : olisByUmuIdMap.keySet()){
             Pedido__c pedidoRec = new Pedido__c(
                 UMU__c = umuId,
+                Creado_Por__c = contactId,
+                Es_Programa__c = esPrograma,
                 Tipo_de_Pedido__c = tipoDePedido,
                 Fecha_Limite_de_Entrega__c = getFechaMaximaDeEntrega(esPrograma, tipoDePedido, umuId)
             );
             pedidoListToInsert.add(pedidoRec);
-        } 
+        }
         try {
             insert pedidoListToInsert;
         } catch (DmlException e) {
@@ -149,6 +151,7 @@ public without sharing class controladorGeneracionPedidos {
                     UMU__c = umuId,
                     Tipo_de_Pedido__c = tipoDePedido,
                     Estatus__c = ESTATUS_VERIFICANDO,
+                    Seguimiento__c = JSON.serialize(new Map<String, String>{ ESTATUS_VERIFICANDO => 'Fecha:' + String.valueOf(Datetime.now()) }),
                     ltima_Fecha_de_Validaci_n_de_DPN_Activa__c = getUltimaFechaActivaDPN(umuId, true),
                     Pr_ximaFecha_de_Validaci_n_de_DPN_Activa__c = getUltimaFechaActivaDPN(umuId, false)
                 );
@@ -195,8 +198,8 @@ public without sharing class controladorGeneracionPedidos {
                     oliListToUpdate.add(oli);
                 } 
 
-                if(!updateOrderMap.containsKey(ord.Id)){
-                    if(ord.Pedido__c == null && oli.Pedido__c != null){ ord.Pedido__c = oli.Pedido__c; }
+                if(!updateOrderMap.containsKey(ord.Id) && ord.Pedido__c == null && oli.Pedido__c != null && ord.UMU__c == oli.UMU__c){
+                    ord.Pedido__c = oli.Pedido__c; 
                     updateOrderMap.put(ord.Id, ord);
                 }
             } 
@@ -313,15 +316,15 @@ public without sharing class controladorGeneracionPedidos {
 
         else if(tipoDePedido == 'Ordinario'){
             Datetime dateTimeLimiteDeEntrega = currentDateTime;
-            if(isRestoDelPais){              
+            if(isRestoDelPais){
                 dateTimeLimiteDeEntrega = calcularFechaHabil(currentDateTime, 5);
-                return dateTimeLimiteDeEntrega; 
+                return dateTimeLimiteDeEntrega;
             } else{
                 dateTimeLimiteDeEntrega = calcularFechaHabil(currentDateTime, 3);
-                return dateTimeLimiteDeEntrega; 
+                return dateTimeLimiteDeEntrega;
             }
         }
-        
+
 
         return null;
     }
@@ -333,17 +336,17 @@ public without sharing class controladorGeneracionPedidos {
         while (businessDaysToAdd > 0) {
             // Add one day to the date
             futureDate = futureDate.addDays(1);
-            
+
             // Convert the date to a datetime with a default time of midnight
             Datetime futureDateTime = Datetime.newInstance(futureDate.year(), futureDate.month(), futureDate.day());
-            
+
             // Check if the day is a weekend (Saturday or Sunday)
             if (futureDateTime.format('E') != 'Sat' && futureDateTime.format('E') != 'Sun') {
                 // Decrease the number of business days to add
                 businessDaysToAdd--;
             }
         }
-        
+
         // Return the resulting date
         return futureDate;
     }
@@ -739,33 +742,37 @@ public without sharing class controladorGeneracionPedidos {
         for(Id key : orderLineItemsMap.keySet()) {
             List<Order_Line_Item__c> itemList = orderLineItemsMap.get(key);
             system.debug('itemList: ' + itemList);
+            Boolean evaluate = true;
+            allProductList.clear();
+            productList.clear();
 
             for(Order__c order : orders) {
                 List<Id> productIds = new List<Id>();
-                //List<String> subalmacenes = new List<String>();
                 String subalmacen = '';
 
                 for(Order_Line_Item__c item : itemList) {
+                    if(evaluate) { allProductList.add(item.Id); }
+
                     if(order.Id == item.Order__c) {
                         productIds.add(item.Product__c);
+                        productList.add(item.Id);
                         if(subalmacen == '') { subalmacen = String.valueOf(item.Numero_de_Subalmacen__c); }
-                        // if(!subalmacenes.contains(String.valueOf(item.Numero_de_Subalmacen__c))) {
-                        //     subalmacenes.add(String.valueOf(item.Numero_de_Subalmacen__c));
-                        // }
                     }
                 }
 
-                umuItem = [
-                    SELECT Id, Name, Clave_Presupuestal__c
-                    FROM Account
-                    WHERE Id = : order.UMU__c LIMIT 1
-                ];
-
-                system.debug('umuItem: ' + umuItem);
-                system.debug('subalmacen: ' + subalmacen);
-                system.debug('productIds: ' + productIds);
+                evaluate = false;
 
                 if(subalmacen != '') {
+                    umuItem = [
+                        SELECT Id, Name, Clave_Presupuestal__c
+                        FROM Account
+                        WHERE Id = : order.UMU__c LIMIT 1
+                    ];
+
+                    system.debug('umuItem: ' + umuItem);
+                    system.debug('subalmacen: ' + subalmacen);
+                    system.debug('productIds: ' + productIds);
+
                     List<ContentVersion> subalmacenContentVersions = new List<ContentVersion>();
                     idsParameters = String.join(productIds, ',');
 
@@ -779,7 +786,7 @@ public without sharing class controladorGeneracionPedidos {
                     contentVersion.VersionData = contentBlob;
                     contentVersion.Title = subalmacen + ' - Confirmacion De Pedido PDF.pdf';
                     contentVersion.PathOnClient = 'ConfirmacionDePedido.pdf';
-                    //contentVersion.FirstPublishLocationId = order.Id; 
+                    contentVersion.FirstPublishLocationId = order.Id;
                     contentVersionList.add(contentVersion);
                     subalmacenContentVersions.add(contentVersion);
 
@@ -803,51 +810,10 @@ public without sharing class controladorGeneracionPedidos {
                     system.debug('contentVersionMap: ' + contentVersionMap);
                     system.debug('umuEmailMap: ' + umuEmailMap);
                 }
-
-                // for(String subalmacen : subalmacenes) {
-                //     List<ContentVersion> subalmacenContentVersions = new List<ContentVersion>();
-                //     idsParameters = String.join(productIds, ',');
-
-                //     Subalmacen__c subalmacenEmail = [SELECT Email__c FROM Subalmacen__c WHERE Numero_de_Subalmacen__c = :subalmacen LIMIT 1];
-                //     subalmacenEmailMap.put(subalmacen, subalmacenEmail.Email__c);
-
-                //     Pagereference pageRef = new Pagereference('/apex/confirmacionDePedido?id=' + order.Id + '&idsubalmacen=' + subalmacen + '&listaProductos=' + idsParameters);
-
-                //     Blob contentBlob = pageRef.getContentAsPDF();
-                //     ContentVersion contentVersion = new ContentVersion();
-                //     contentVersion.VersionData = contentBlob;
-                //     contentVersion.Title = subalmacen + ' - Confirmacion De Pedido PDF.pdf';
-                //     contentVersion.PathOnClient = 'ConfirmacionDePedido.pdf';
-                //     //contentVersion.FirstPublishLocationId = order.Id; 
-                //     contentVersionList.add(contentVersion);
-                //     subalmacenContentVersions.add(contentVersion);
-
-                //     ContentVersion content = createCSVFiles(productList, true);
-                //     contentVersionList.add(content);
-
-                //     if(!contentVersionMap.containsKey(key)) {
-                //         contentVersionMap.put(key, new List<ContentVersion>());
-                //     }
-                //     contentVersionMap.get(key).addAll(subalmacenContentVersions);
-
-                //     String umuEmail = [SELECT Id, Email__c FROM Account WHERE Id = :order.UMU__c LIMIT 1].Email__c;
-                //     if(!umuEmailMap.containsKey(key)) {
-                //         umuEmailMap.put(key, umuEmail);
-                //     }
-
-                //     system.debug('');
-                //     system.debug('subalmacen: ' + subalmacen);
-                //     system.debug('idsParameters: ' + idsParameters);
-                //     system.debug('contentVersionList: ' + contentVersionList);
-                //     system.debug('contentVersionMap: ' + contentVersionMap);
-                //     system.debug('umuEmailMap: ' + umuEmailMap);
-                // }
             }
 
-            for(Order_Line_Item__c item : itemList) {
-                allProductList.add(item.Id);
-            }
-            
+            system.debug('---> allProducts: ' + allProductList);
+
             if(contentVersionMap.containsKey(key)) {
                 List<contentVersion> csvContentList = new  List<contentVersion>();
                 csvContentList.add(createCSVFiles(allProductList, false));
@@ -855,11 +821,11 @@ public without sharing class controladorGeneracionPedidos {
             }
         }
 
-        for(String key: contentVersionMap.keySet()) {
-            List<ContentVersion> values = contentVersionMap.get(key);
-            System.debug('-----Key: ' + key);
-            System.debug('-----Values: ' + values);
-        }
+        // for(String key: contentVersionMap.keySet()) {
+        //     List<ContentVersion> values = contentVersionMap.get(key);
+        //     System.debug('-----Key: ' + key);
+        //     System.debug('-----Values: ' + values);
+        // }
 
         try {
             insert contentVersionList;
@@ -937,73 +903,77 @@ public without sharing class controladorGeneracionPedidos {
             system.debug(contentVersionIds);
             system.debug(contentVersionIdsStr);
             system.debug(contentVersionList);
-            //return contentVersionList;   
+            //return contentVersionList;
         } catch (Exception error) {
             System.debug('An erros has ocurred: ' + error.getMessage());
             //return null;
         }
     }
 
-    public static ContentVersion createCSVFiles2(List<String> productList){
-        
-        List<Order_Line_Item__c> listSubalmacen = [
-            SELECT Product__r.Name, Numero_de_Subalmacen__c 
-            FROM Order_Line_Item__c WHERE Id IN : productList
+    public static ContentVersion createCSVFiles(List<String> productList, Boolean asociateRecord){
+
+        List<Order_Line_Item__c> lineItems = [
+            SELECT Product__r.Name, Product__r.Product_Code_ID__c, Product__r.Description__c, Cantidad_Solicitada__c,
+            Numero_de_Subalmacen__c, Order__c, Product__r.Programa__c
+            FROM Order_Line_Item__c WHERE Id IN :productList
         ];
-        
+
         Set<String> csvRows = new Set<String>();
-        
-        // Agregar los valores de Subalmacen__r.Name y Subalmacen__r.Numero_de_Subalmacen__c
-        for (Order_Line_Item__c product : listSubalmacen) {
-            csvRows.add(product.Product__r.Name + ',' + product.Numero_de_Subalmacen__c);
+
+        if(lineItems.size() > 0) {
+            system.debug('CSV');
+            system.debug(lineItems);
+
+            Order__c order = [
+                SELECT Id, Name, Tipo_de_Pedido__c, Fecha_de_Creacion__c, UMU__c, Estatus__c
+                FROM Order__c
+                WHERE Id = :lineItems.get(0).Order__c LIMIT 1
+            ];
+
+            system.debug(order);
+
+            Account umu = [
+                SELECT Id, Name, Clave_Presupuestal__c, Delegaci_n__c, UMU__c
+                FROM Account
+                WHERE Id = :order.UMU__c LIMIT 1
+            ];
+            system.debug(umu);
+
+            Programas__c program = [
+                SELECT Id, Name, Programa_ID__c
+                FROM Programas__c
+                WHERE Id = :lineItems.get(0).Product__r.Programa__c LIMIT 1
+            ];
+
+            // Agregar los valores de Subalmacen__r.Name y Subalmacen__r.Numero_de_Subalmacen__c
+            for (Order_Line_Item__c item : lineItems) {
+                csvRows.add(umu.Delegaci_n__c + ',' + umu.UMU__c + ',' + umu.Clave_Presupuestal__c
+                + ',' + umu.Name + ',' + order.Tipo_de_Pedido__c + ',' + order.Fecha_de_Creacion__c
+                + ',' + item.Product__r.Product_Code_ID__c + ',' + item.Product__r.Name + ',' + item.Product__r.Description__c
+                + ',' + item.Cantidad_Solicitada__c + ',' + item.Cantidad_Solicitada__c
+                + ',' + order.Estatus__c + ',' + program.Programa_ID__c + ',' + program.Name);
+            }
         }
-        
-        List<String> csvList = new List<String>(csvRows); 
-        
-        List<String> headers = new List<String>{'INSUMO','NÚMERO DE SUBALMACEN'};
-            
-            String csvString = String.join(headers, ',') + '\n' + String.join(csvList, '\n');
+
+        List<String> csvList = new List<String>(csvRows);
+
+        List<String> headers = new List<String>{'DELEGACION', 'UMU', 'CLAVE PRESUPUESTAL',
+        'NOMBRE UMU', 'TIPO DE PEDIDO', 'FECHA DE SOLICITUD', 'CLAVE', 'INSUMO', 'DESCRIPCION',
+        'CANTIDAD AUTORIZADA', 'CANTIDAD COLOCADA EN SAP', 'ESTATUS', 'ID DE PROGRAMA', 'PROGRAMA'};
+
+        String csvString = String.join(headers, ',') + '\n' + String.join(csvList, '\n');
         Blob contentBlob = Blob.valueOf(csvString);
-        
+
         ContentVersion contentVersion = new ContentVersion();
         contentVersion.VersionData = contentBlob;
         contentVersion.Title = 'FILE CSV.csv';
         contentVersion.PathOnClient = 'File.csv';
-        //contentVersion.FirstPublishLocationId = OrderId; 
+        if(asociateRecord && lineItems.size() > 0) {
+            contentVersion.FirstPublishLocationId = lineItems.get(0).Order__c; 
+        }
         return contentVersion;
     }
 
-    public static ContentVersion createCSVFiles(List<String> productList, Boolean asociateRecord){
-        
-        List<Order_Line_Item__c> listSubalmacen = [
-            SELECT Product__r.Name, Numero_de_Subalmacen__c, Order__c 
-            FROM Order_Line_Item__c WHERE Id IN : productList
-        ];
-        
-        Set<String> csvRows = new Set<String>();
-        
-        // Agregar los valores de Subalmacen__r.Name y Subalmacen__r.Numero_de_Subalmacen__c
-        for (Order_Line_Item__c product : listSubalmacen) {
-            csvRows.add(product.Product__r.Name + ',' + product.Numero_de_Subalmacen__c);
-        }
-        
-        List<String> csvList = new List<String>(csvRows); 
-        
-        List<String> headers = new List<String>{'NOMBRE DE SUBALMACEN','NÚMERO DE SUBALMACEN'};
-            
-            String csvString = String.join(headers, ',') + '\n' + String.join(csvList, '\n');
-        Blob contentBlob = Blob.valueOf(csvString);
-        
-        ContentVersion contentVersion = new ContentVersion();
-        contentVersion.VersionData = contentBlob;
-        contentVersion.Title = 'FILE CSV.csv';
-        contentVersion.PathOnClient = 'File.csv';
-        if(asociateRecord && listSubalmacen.size() > 0) {
-            contentVersion.FirstPublishLocationId = listSubalmacen.get(0).Order__c; 
-        }
-        return contentVersion;
-    }
-    
     @testVisible
     public static Set<Id> getOrderId(List<Order__c> orderList){
         Set<Id> orderIds = new Set<Id>();

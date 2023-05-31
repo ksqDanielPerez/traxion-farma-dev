@@ -2,11 +2,12 @@ import { LightningElement, wire, api, track } from 'lwc';
 import { publish, MessageContext } from 'lightning/messageService';
 import SET_GENERAR_PEDIDOS_MENU from '@salesforce/messageChannel/set_generar_pedidos_menu__c';
 import getCalendarioValidaciones from '@salesforce/apex/CalendarioDeValidacionesController.getCalendarioValidaciones';
+import orderType from '@salesforce/messageChannel/order_type__c';
 
 export default class OpcionesDeOrdenes extends LightningElement {
 
     @wire(MessageContext)
-    MessageContext
+    messageContext
 
     isOrdinario = false;
     isNoOrdinario = false;
@@ -136,8 +137,6 @@ export default class OpcionesDeOrdenes extends LightningElement {
             //     this.minDate = today.setDate(today.getDate());
             // }
 
-
-
             const fechaInicial = sortedDates[0];
             const diaAntesDeFechaInicial = new Date(fechaInicial);
             this.minDate = diaAntesDeFechaInicial.setDate(diaAntesDeFechaInicial.getDate());
@@ -153,7 +152,7 @@ export default class OpcionesDeOrdenes extends LightningElement {
             while (currentDate <= endDate) { 
                 if(!sortedDates.includes(currentDate.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }))){
                     dates.push(new Date(currentDate));
-                } 
+                }
                 // else{
                 //     markedDates.push({
                 //         date: currentDate,
@@ -161,7 +160,7 @@ export default class OpcionesDeOrdenes extends LightningElement {
                 //     });
                 // }
                 currentDate.setDate(currentDate.getDate() + 1);
-            } 
+            }
             this.disabledDates = dates; 
             // this.markedDates = markedDates;
         } else{
@@ -173,18 +172,15 @@ export default class OpcionesDeOrdenes extends LightningElement {
         console.log("INSIDE HANDLE DATE CHANGE");
 
         const todasLasFechas = this.value;
-        
         console.log(JSON.parse(JSON.stringify(todasLasFechas)));
 
         const todasMenosFechaSeleccionada = event.target.value;
-
         console.log(JSON.parse(JSON.stringify(todasMenosFechaSeleccionada)));
 
         const formattedDates = todasMenosFechaSeleccionada.map(date => new Date(date).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }));
         console.log(JSON.parse(JSON.stringify(formattedDates)));
 
         const difference = todasLasFechas.filter(x => !formattedDates.includes(x));
-
         const today = new Date();
         const formattedToday = today.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' });
         if(difference.includes(formattedToday)) {
@@ -199,12 +195,34 @@ export default class OpcionesDeOrdenes extends LightningElement {
     }
 
     handleSolicitarPedidoOrdinario() {
+        this.isNoOrdinario = false;
         this.dispatchEvent(new CustomEvent('ordinario'));
+
+        const payload = {
+            isNoOrdinario: this.isNoOrdinario
+        };
+        console.log('payload 0: ' +  payload.isNoOrdinario);
+        publish(this.messageContext, orderType, payload);
     }
 
     handleSolicitarPedidosNoOrdinario() {
+        this.isNoOrdinario = true;
         this.dispatchEvent(new CustomEvent('nordinario'));
+
+        const payload = {
+            isNoOrdinario: this.isNoOrdinario
+        };
+        console.log('payload 0: ' +  payload.isNoOrdinario);
+        publish(this.messageContext, orderType, payload);
     }
+
+    // publishMessage(){
+    //     const payload = {
+    //         isNoOrdinario: this.isNoOrdinario
+    //     };
+    //     publish(this.messageContext, orderType, payload);
+    // }
+
     handlePedidoEspeciales() {
         this.dispatchEvent(new CustomEvent('especiales'));
     }

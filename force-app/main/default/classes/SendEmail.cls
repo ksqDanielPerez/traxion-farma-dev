@@ -98,20 +98,20 @@ public without sharing class SendEmail {
         system.debug(dataSummary);
         
         String htmlBody = template.HtmlValue;
-        String folio = order.ID_de_Pedido__c;
+        //String folio = order.ID_de_Pedido__c;
 		htmlBody = htmlBody.replace('{CANTIDAD_DE_CLAVES_SOLICITADAS}', String.valueOf(dataSummary.numItems));
 		htmlBody = htmlBody.replace('{CANTIDAD_DE_UNIDADES_MEDICAS}', String.valueOf(dataSummary.numCantidadUmus));
         htmlBody = htmlBody.replace('{CANTIDAD_DE_PIEZAS_SOLICITADAS}', String.valueOf(dataSummary.sumCantidadAutorizada));
         htmlBody = htmlBody.replace('{TIPO_DE_PEDIDO}', order.Tipo_de_Pedido__c);
         htmlBody = htmlBody.replace('{FECHA_DE_CARGA}', String.valueOf(order.Fecha_de_Creacion__c));
-        htmlBody = htmlBody.replace('{NUMERO_DE_FOLIO}', folio.substring(0,5));
+        //htmlBody = htmlBody.replace('{NUMERO_DE_FOLIO}', folio.substring(0,5));
         htmlBody = htmlBody.replace('{NOMBRE_DEL_PROGRAMA}', programName);
         
         String body = template.Body;
         
         String subject = template.Subject;
         subject = subject.replace('{TIPO_DE_PEDIDO}', order.Tipo_de_Pedido__c);
-        subject = subject.replace('{NUMERO_DE_FOLIO}', folio.substring(0,5));
+        //subject = subject.replace('{NUMERO_DE_FOLIO}', folio.substring(0,5));
         subject = subject.replace('{NOMBRE_DEL_PROGRAMA}', programName);   
         
         Messaging.SingleEmailMessage email = new Messaging.SingleEmailMessage();

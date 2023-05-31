@@ -21,7 +21,7 @@ public without sharing class PreAutorizacionClass {
         try{
             orden = [
                 SELECT Id, Contacto__r.FirstName, UMU__c, Folio_del_Pedido__c, Tipo_de_Pedido__c, ID_de_Pedido__c, CreatedDate, 
-                    Aprobado_Por__c, Fecha_Revision_Delegacion__c
+                    Aprobado_Por__c, Fecha_Revision_Delegacion__c, Pedido__r.ID_de_Pedido__c
                 FROM Order__c 
                 WHERE Id =: ordenId 
                 LIMIT 1
@@ -62,7 +62,11 @@ public without sharing class PreAutorizacionClass {
             listaProductos = new List<String>(urlProductos.split(','));
 
             productos = [
-                SELECT Id, Product_Code_ID__c, Name 
+                SELECT Id, Product_Code_ID__c, Name, 
+                    (SELECT Id, Name, Product__c, Order__c, Cantidad_Solicitada__c, Cantidad_Aprobada__c, Cantidad_Autorizada__c,
+                        Estatus_Aprobaci_n__c, Estatus_Autorizaci_n__c, Motivo_No_Aprobaci_n__c, Motivo_No_Autorizaci_n__c
+                     FROM Order_Line_Items__r
+                     WHERE Order__c =: ordenId LIMIT 1) 
                 FROM Product2 
                 WHERE Id IN: listaProductos
             ];

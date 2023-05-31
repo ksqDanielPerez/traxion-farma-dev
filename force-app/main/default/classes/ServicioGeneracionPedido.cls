@@ -26,7 +26,7 @@ public class ServicioGeneracionPedido {
         API_BASE_URL = settings.Api_Base_Url__c;
     }
     
-    public static RespuestaTraxionWrapper crearPedido(List<Envio> envios) {
+    public static RespuestaTraxionWrapper crearPedido(List<Envio> envios) { 
         String apiUrl = API_BASE_URL + API_RUTA;
 
         HttpRequest pedido = new HttpRequest();
@@ -37,7 +37,7 @@ public class ServicioGeneracionPedido {
         pedido.setBody(JSON.serialize(new Map<String, List<Envio>>{ 'shipments' => envios }));
 
         HttpResponse respuesta = new Http().send(pedido);
-        if (respuesta.getStatusCode() != 200) {
+        if (respuesta.getStatusCode() != 200) { 
             throw new CalloutException('Error al crear pedido. Código de estado: ' + respuesta.getStatusCode() + ', Mensaje: ' + respuesta.getBody());
         }
         
@@ -45,7 +45,7 @@ public class ServicioGeneracionPedido {
     }
     
     public class Envio {
-        public String client_id; 
+        public String client_id;
         public String external_id;
         public String document_number;
         public String early_delivery_date;
@@ -86,16 +86,16 @@ public class ServicioGeneracionPedido {
     }
     
     public class RespuestaTraxionWrapper {
-        public RespuestaTraxion respuesta_traxion;
+        public RespuestaTraxion traxion_response;
     }
     
     public class RespuestaTraxion {
-        public String completado_exitosamente;
-        public Respuesta respuesta;
+        public String completed_succesfully;
+        public Respuesta response;
     }
 
     public class Respuesta {
-        public String mensaje;
-        public Map<String, Object> datos;
+        public String message;
+        public Map<String, Object> data;
     }
 }

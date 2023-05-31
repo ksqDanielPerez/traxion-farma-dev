@@ -1,0 +1,18 @@
+<template>
+    <div class="container">
+        <div class="grid">
+            <div class="title">Unidad Médica</div>
+            <div class="option-text">
+                Selecciona una UMU para continuar
+            </div>
+            <div>
+                <select onchange={handleSelect}>
+                    <option value="Seleccionar Unidad Medica"> Selecciona una UMU</option>
+                    <template for:each={umuOptions} for:item="umu">
+                        <option key={umu.Name} value={umu.Id}> {umu.UMU__c}, {umu.Name}</option>
+                    </template>
+                </select>
+            </div>
+        </div>
+    </div>
+</template>

@@ -7,7 +7,7 @@ export default class GenerarPedidoTemplate extends LightningElement {
     tipoDePedido = '';
 
     connectedCallback(){
-        this.susbcribeToMessageChannel(); 
+        this.susbcribeToMessageChannel();
     }
 
     @wire(MessageContext)
@@ -22,12 +22,13 @@ export default class GenerarPedidoTemplate extends LightningElement {
     }
 
     handleMessage(message){
-        if(message && message.isGenerarPedidos) 
+        if(message && message.isGenerarPedidos)
             this.tipoDePedido = '';
     }
 
     get isTipoDePedido(){
         const isOrdinario = this.tipoDePedido === 'Ordinario' || this.tipoDePedido === '';
+        //console.log('---> DESAPARECIDO: ' + isOrdinario);
         return {
             estado: !isOrdinario,
             size: isOrdinario ? 12 : 10,
