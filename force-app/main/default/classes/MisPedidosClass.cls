@@ -157,10 +157,14 @@ public with sharing class MisPedidosClass {
 
     private static List<Order__c> getOrders(List<String> orderIdList) {  
         String orderQuery = 'SELECT Id, Name, CreatedDate, Fecha_de_Creacion__c, Seguimiento__c, Order_Number__c, ' +
-            'Estatus__c, Tipo_de_Pedido__c, Fecha_Limite_de_Entrega__c, Entrega__c, Entrega__r.Name, Aprobado_Por__c, Aprobado_Por__r.Name, ' +
-            'Contacto__c, Contacto__r.Name, UMU__c, UMU__r.Name, UMU__r.Estado__c, UMU__r.Colonia__c, UMU__r.Delegacion__c, UMU__r.Clave_Presupuestal__c, ' +
+            'Estatus__c, Tipo_de_Pedido__c, Fecha_Limite_de_Entrega__c, Entrega__c, Entrega__r.Name, Aprobado_Por__c, ' +
+            'Aprobado_Por__r.Name, Certificado_Por__r.Name, Firmado_Por__r.Name, Contacto__c, Contacto__r.Name, UMU__c, ' +
+            'UMU__r.Name, UMU__r.Estado__c, UMU__r.Colonia__c, UMU__r.Delegacion__c, UMU__r.Clave_Presupuestal__c, ' +
             '(SELECT Id, Estatus__c, Cantidad_Solicitada__c, Cantidad_Aprobada__c, Cantidad_de_Piezas__c, Costo__c, Account__r.Name, Account__r.Clave_Presupuestal__c, Account__r.Estado__c, ' +
-                'Product__r.Name, Product__r.Product_Code_ID__c, Product__r.Subalmacen__c, Product__r.Subalmacen__r.Name, Product__r.Subalmacen__r.Numero_de_Subalmacen__c, Product__r.Programa__c, Product__r.Programa__r.Inventario__c, Product__r.Programa__r.Programa_ID__c, Product__r.Programa__r.Name FROM Order_Line_Items__r) ' +
+                'Product__r.Name, Product__r.Product_Code_ID__c, Product__r.Subalmacen__c, Product__r.Subalmacen__r.Name, ' +
+                'Product__r.Subalmacen__r.Numero_de_Subalmacen__c, Product__r.Programa__c, Product__r.Programa__r.Inventario__c, ' +
+                'Product__r.Programa__r.Programa_ID__c, Product__r.Programa__r.Name ' +
+             'FROM Order_Line_Items__r) ' +
         'FROM Order__c ' + 
         'WHERE Id IN: orderIdList';
         return Database.query(orderQuery); 
@@ -169,6 +173,8 @@ public with sharing class MisPedidosClass {
 
     @AuraEnabled
     public static Order__c certificateOrder(Id selectedOrderId){ 
+
+
 
         List<Order__c> orderToCertificateList = [
             SELECT Id, Firmado_Por__c, Estatus__c, Seguimiento__c, Pedido__c, Pedido__r.Creado_Por__c, Pedido__r.Creado_Por__r.Email
@@ -206,23 +212,73 @@ public with sharing class MisPedidosClass {
 
     public static void sendEmaiPreAutorizacion(Id orderId, Id contactId, List<String> contactEmail, String emailTemplate){
 
-        EmailTemplate et = [SELECT Id, Subject, Body FROM EmailTemplate WHERE DeveloperName =: emailTemplate];
+        List<Order__c> orderList = [
+            SELECT Id
+            FROM Order__c
+            WHERE Id =: orderId
+        ];
 
-        List<String> contentDocumentIdsList = getFieldIdsList(orderId);
-        List<ContentVersion> contentVersionList = [Select Id from ContentVersion where ContentDocumentId IN: contentDocumentIdsList];   
+        List<Order_Line_Item__c> oliList = [
+            SELECT Id, Product__c, Order__c, Pedido__c
+            FROM Order_Line_Item__c
+            WHERE Order__c =: orderId
+        ];
+        List<Id> productIds = new List<Id>();
+        for(Order_Line_Item__c oli : oliList){
+            productIds.add(oli.Product__c);
+        }
+        String idsParameters = String.join(productIds, ',');
+
+        List<ContentVersion> contentVersionList = new List<ContentVersion>(); 
+
+        System.debug('Suaaave');
+        System.debug(orderId);
+        System.debug(idsParameters);
+
+        Pagereference pageRef = new Pagereference('/apex/CertificacionDeOrden?id=' + orderId + '&listaProductos=' + idsParameters);
+        Blob contentBlob = pageRef.getContentAsPDF();
+
+        // ContentVersion contentVersion = new ContentVersion();
+        // contentVersion.VersionData = contentBlob;
+        // contentVersion.Title = 'Certificado.pdf';
+        // contentVersion.PathOnClient = 'Certificado.pdf';
+        // contentVersion.FirstPublishLocationId = orderId; 
+        // contentVersionList.add(contentVersion);
+        // insert contentVersionList;
+
+
+        Map<String, String> certificadoMap = new Map<String, String>();
+        certificadoMap.put('base64', EncodingUtil.base64Encode(contentBlob)); 
+        String response = JSON.serialize(ServicioCertificacionEntrega.obtenerCertificacion(certificadoMap));
+        Map<String, String> responseMap = (Map<String, String>)JSON.deserialize(response, Map<String, String>.class);
+        if(responseMap.containsKey('traxion_response')){
+            Map<String, String> traxionResponse = (Map<String, String>)JSON.deserialize(responseMap.get('traxion_response'), Map<String, String>.class);
+            if (traxionResponse.containsKey('completed_succesfully') && String.valueOf(traxionResponse.get('completed_succesfully')) == 'true') {
+                ContentVersion contentVersion = new ContentVersion();
+                contentVersion.VersionData = contentBlob;
+                contentVersion.Title = 'Certificado.pdf';
+                contentVersion.PathOnClient = 'Certificado.pdf';
+                contentVersion.FirstPublishLocationId = orderId; 
+                contentVersionList.add(contentVersion);
+                insert contentVersionList;
+            }  
+        }
+
+
+
         List<String> conVerList = new List<String>();
         for(ContentVersion conver : contentVersionList){
             conVerList.add(conVer.Id);
         }
 
+
+        EmailTemplate et = [SELECT Id, Subject, Body FROM EmailTemplate WHERE DeveloperName =: emailTemplate];
         Messaging.SingleEmailMessage mail = new Messaging.SingleEmailMessage();
         mail.setTemplateId(et.Id);
         mail.setToAddresses(contactEmail);
         mail.setTargetObjectId(contactId); 
         mail.setWhatId(orderId); 
-
         mail.setEntityAttachments(conVerList); 
-
         mail.setSaveAsActivity(false);
         mail.setUseSignature(false);
 

@@ -239,22 +239,47 @@ public with sharing class UserContactClass {
             envio.external_id = ord.Order_Number__c;
             envio.document_number = ord.Order_Number__c;
             envio.early_delivery_date = String.valueOf(ord.CreatedDate.addDays(1));
+            // envio.early_delivery_date = '20230531132141';
             envio.early_ship_date = String.valueOf(ord.CreatedDate.addDays(1));
+            // envio.early_ship_date = '20230531132141';
             envio.late_delivery_date = String.valueOf(ord.Pedido__r.Fecha_Limite_de_Entrega__c);
+            // envio.late_delivery_date = '20230531132141';
             envio.late_ship_date = String.valueOf(ord.Pedido__r.Fecha_Limite_de_Entrega__c);
+            // envio.late_ship_date = '20230531132141';
             envio.remision = ord.Order_Number__c;
             envio.shipment_number = ord.Order_Number__c;
             envio.entered_date = String.valueOf(ord.CreatedDate);
+            // envio.entered_date = '20230531132141';
             envio.ship_address = '';
             envio.customer_date = String.valueOf(ord.CreatedDate);
-            envio.order_type = 'S-OFIC';
+            // envio.customer_date = '20230531132141';
+
+            if(ord.Tipo_de_Pedido__c == 'Soporte de Vida'){
+                envio.order_type = 'S-SPUR';
+            } else if(ord.Tipo_de_Pedido__c == 'Urgencia Médica'){
+                envio.order_type = 'S-URGE';
+            } else if(ord.Tipo_de_Pedido__c == 'Ordinario'){
+                envio.order_type = 'S-ORDI';
+            } else if(ord.Tipo_de_Pedido__c == 'Extraordinario'){
+                envio.order_type = 'S-EXTRA';
+            } else if(ord.Tipo_de_Pedido__c == 'Replaneación'){
+                envio.order_type = 'S-REPLA';
+            } else if(ord.Tipo_de_Pedido__c == 'Emergencia Sanitaria'){
+                envio.order_type = 'S-SANI';
+            }
+            // envio.order_type = 'S-OFIC';
+
             envio.customer_number = ord.UMU__r.UMU__c;
             envio.bto_rush = ord.Tipo_de_Pedido__c == 'Urgencia Médica' || ord.Tipo_de_Pedido__c == 'Soporte de Vida' ? '1' : '2';
 
             List<ServicioGeneracionPedido.Item> itemsList = new List<ServicioGeneracionPedido.Item>();
+
+            Integer oliNum = 1;
             for(Order_Line_Item__c oli : ord.Order_Line_Items__r){
+
                 ServicioGeneracionPedido.Item item = new ServicioGeneracionPedido.Item();
-                item.order_line = oli.Name;
+                // item.order_line = oli.Name;
+                item.order_line = String.valueOf(oliNum);
                 item.entered_date = String.valueOf(ord.CreatedDate);
                 item.product_number = oli.Product__r.Product_Code_ID__c;
                 item.ordered_quantity = String.valueOf(oli.Cantidad_Solicitada__c);
@@ -263,6 +288,7 @@ public with sharing class UserContactClass {
                 item.split_case = '1';
                 item.unit_price = '0';
                 itemsList.add(item);
+                oliNum ++;
             } 
 
             envio.items = itemsList;

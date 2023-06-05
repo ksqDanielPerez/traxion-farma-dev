@@ -3,7 +3,6 @@ import { subscribe, MessageContext } from 'lightning/messageService';
 import SET_GENERAR_PEDIDOS_MENU from '@salesforce/messageChannel/set_generar_pedidos_menu__c';
 
 export default class GenerarPedidoTemplate extends LightningElement {
-
     tipoDePedido = '';
 
     connectedCallback(){
@@ -28,7 +27,6 @@ export default class GenerarPedidoTemplate extends LightningElement {
 
     get isTipoDePedido(){
         const isOrdinario = this.tipoDePedido === 'Ordinario' || this.tipoDePedido === '';
-        //console.log('---> DESAPARECIDO: ' + isOrdinario);
         return {
             estado: !isOrdinario,
             size: isOrdinario ? 12 : 10,

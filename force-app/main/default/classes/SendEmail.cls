@@ -41,6 +41,18 @@ public without sharing class SendEmail {
         Messaging.SendEmailResult[] results = Messaging.sendEmail(new Messaging.SingleEmailMessage[]{email});
     }
     
+    public static void sendOrdinaryEmail(List<ContentVersion> listContentVersion, String correoElectronico) {
+        List<Messaging.EmailFileAttachment> listAttachment = createEmailAttachments(listContentVersion);
+        
+        Messaging.SingleEmailMessage email = new Messaging.SingleEmailMessage();
+        email.setSubject('Files');
+        email.setPlainTextBody('Probando si funciona.');
+        email.setToAddresses(new List<String>{correoElectronico});
+        email.setFileAttachments(listAttachment);
+        
+        Messaging.SendEmailResult[] results = Messaging.sendEmail(new Messaging.SingleEmailMessage[]{email});
+    }
+    
     public static void sendTemplateEmailWithAttachments(List<ContentVersion> listContentVersion, String correoElectronico, Order__c order, Account umu) {
         List<Messaging.EmailFileAttachment> listAttachment = createEmailAttachments(listContentVersion);
         

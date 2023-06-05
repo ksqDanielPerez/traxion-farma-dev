@@ -714,11 +714,12 @@ public without sharing class controladorGeneracionPedidos {
         return orderLineItemsMap;
     }
 
+    @Future(callout=true)
     @AuraEnabled
-    public static List<ContentVersion> generatePdfFiles(List<String> orderIds){
+    public static void generatePdfFiles(List<String> orderIds){
 
         List<Order__c> orders = [
-            SELECT Id, Contacto__r.Email, UMU__c, Order_Number__c, Es_Programa__c, Tipo_de_Pedido__c, ID_de_Pedido__c
+            SELECT Id, Contacto__r.Email, UMU__c, Order_Number__c, Es_Programa__c, Tipo_de_Pedido__c, ID_de_Pedido__c, Estatus__c
 			FROM Order__c
             WHERE Id IN :orderIds
         ];
@@ -729,6 +730,7 @@ public without sharing class controladorGeneracionPedidos {
         Account umuItem = new Account();
 
         List<ContentVersion> contentVersionList = new List<ContentVersion>();
+        List<Id> contentVersionsToDelete = new List<Id>();
         Map<String, List<ContentVersion>> contentVersionMap = new Map<String, List<ContentVersion>>();
 
         Map<String, String> umuEmailMap = new Map<String, String>();
@@ -780,18 +782,76 @@ public without sharing class controladorGeneracionPedidos {
                     subalmacenEmailMap.put(subalmacen, subalmacenEmail.Email__c);
 
                     Pagereference pageRef = new Pagereference('/apex/confirmacionDePedido?id=' + order.Id + '&idsubalmacen=' + subalmacen + '&listaProductos=' + idsParameters);
-
                     Blob contentBlob = pageRef.getContentAsPDF();
-                    ContentVersion contentVersion = new ContentVersion();
-                    contentVersion.VersionData = contentBlob;
-                    contentVersion.Title = subalmacen + ' - Confirmacion De Pedido PDF.pdf';
-                    contentVersion.PathOnClient = 'ConfirmacionDePedido.pdf';
-                    contentVersion.FirstPublishLocationId = order.Id;
+
+
+                    ContentVersion contentVersion = null;
+                    String newContentTitle = subalmacen + ' - Confirmacion De Pedido PDF.pdf';
+                    String newContentPath = 'ConfirmacionDePedido.pdf';
+
+                    List<ContentVersion> existingContentVersions = [
+                        SELECT Id, Title, PathOnClient, VersionData, IsMajorVersion, ContentDocumentId
+                        FROM ContentVersion
+                        WHERE FirstPublishLocationId = :order.Id AND Title =: newContentTitle
+                    ];
+
+                    Map<String, ContentVersion> existingContentMap = new Map<String, ContentVersion>();
+                    for (ContentVersion cv : existingContentVersions) {
+                        existingContentMap.put(cv.Title, cv);
+
+                        ContentDocument contentDocument = [
+                            SELECT Id FROM ContentDocument
+                            WHERE Id =: cv.ContentDocumentId
+                        ];
+                        contentVersionsToDelete.add(contentDocument.Id);
+                    }
+
+                    if (existingContentMap.containsKey(newContentTitle)) {
+                        // Si el archivo ya existe, actualizamos su versión
+                        contentVersion = existingContentMap.get(newContentTitle);
+                        // String contentVersionId = contentVersion.Id; // Obtener el ID de la ContentVersion existente
+                        system.debug('existingContentMap: ' + existingContentMap);
+                        //system.debug('contentVersionId: ' + contentVersionId);
+
+                        if(contentVersion.IsMajorVersion) {
+                            system.debug('IsMajorVersion');
+                            contentVersion = new ContentVersion();
+                            contentVersion.VersionData = contentBlob;
+                            contentVersion.Title = newContentTitle;
+                            contentVersion.PathOnClient = newContentPath;
+                            contentVersion.FirstPublishLocationId = order.Id;
+                        }
+                        // else {
+                        //     system.debug('No IsMajorVersion');
+                        //     contentVersion = new ContentVersion();
+                        //     contentVersion.Id = contentVersionId; // Establecer el ID de la ContentVersion existente
+                        //     contentVersion.VersionData = contentBlob;
+                        //     contentVersion.IsMajorVersion = false;
+                        // }
+
+                    } else {
+                        // Si el archivo no existe, creamos una nueva versión
+                        system.debug('No new: ');
+                        contentVersion = new ContentVersion();
+                        contentVersion.VersionData = contentBlob;
+                        contentVersion.Title = newContentTitle;
+                        contentVersion.PathOnClient = newContentPath;
+                        contentVersion.FirstPublishLocationId = order.Id;
+                    }
+
+                    // Blob contentBlob = pageRef.getContentAsPDF();
+                    // ContentVersion contentVersion = new ContentVersion();
+                    // contentVersion.VersionData = contentBlob;
+                    // contentVersion.Title = subalmacen + ' - Confirmacion De Pedido PDF.pdf';
+                    // contentVersion.PathOnClient = 'ConfirmacionDePedido.pdf';
+                    // contentVersion.FirstPublishLocationId = order.Id;
                     contentVersionList.add(contentVersion);
                     subalmacenContentVersions.add(contentVersion);
 
-                    ContentVersion content = createCSVFiles(productList, true);
-                    contentVersionList.add(content);
+                    if(order.Estatus__c == 'Verificando Disponibilidad') {
+                        ContentVersion content = createCSVFiles(allProductList, order.Id);
+                        contentVersionList.add(content);
+                    }
 
                     if(!contentVersionMap.containsKey(key)) {
                         contentVersionMap.put(key, new List<ContentVersion>());
@@ -816,9 +876,13 @@ public without sharing class controladorGeneracionPedidos {
 
             if(contentVersionMap.containsKey(key)) {
                 List<contentVersion> csvContentList = new  List<contentVersion>();
-                csvContentList.add(createCSVFiles(allProductList, false));
+                csvContentList.add(createCSVFiles(allProductList, ''));
                 contentVersionMap.get(key).addAll(csvContentList);
             }
+        }
+
+        for(contentVersion key: contentVersionList) {
+            System.debug('-----Key: ' + key);
         }
 
         // for(String key: contentVersionMap.keySet()) {
@@ -829,27 +893,33 @@ public without sharing class controladorGeneracionPedidos {
 
         try {
             insert contentVersionList;
-            for(String key : umuEmailMap.keySet()) {
-                List<contentVersion> cvList = contentVersionMap.get(key);
-                Account umu = [
-                    SELECT Id, Name, Clave_Presupuestal__c
-                    FROM Account
-                    WHERE Id = : key LIMIT 1
-                ];
 
-                if(cvList.size() > 0) {
-                    String umuEmail = umuEmailMap.get(key);
-                    if(orders.get(0).Es_Programa__c != true) {
-                        SendEmail.sendEmailWithAttachments(cvList, umuEmail);
-                    } else {
-                        SendEmail.sendTemplateEmailWithAttachments(cvList, umuEmail, orders.get(0), umu);
+            if(orders.get(0).Estatus__c == 'Enviado') {
+                system.debug('Deleting...');
+                Database.delete(contentVersionsToDelete);
+
+                for(String key : umuEmailMap.keySet()) {
+                    List<contentVersion> cvList = contentVersionMap.get(key);
+                    Account umu = [
+                        SELECT Id, Name, Clave_Presupuestal__c
+                        FROM Account
+                        WHERE Id = : key LIMIT 1
+                    ];
+
+                    if(cvList.size() > 0) {
+                        String umuEmail = umuEmailMap.get(key);
+                        if(orders.get(0).Es_Programa__c != true) {
+                            SendEmail.sendEmailWithAttachments(cvList, umuEmail);
+                        } else {
+                            SendEmail.sendTemplateEmailWithAttachments(cvList, umuEmail, orders.get(0), umu);
+                        }
                     }
                 }
             }
-            return contentVersionList;
+            //return contentVersionList;
         } catch (DmlException error) {
             System.debug('An erros has ocurred: ' + error.getMessage());
-            return null;
+            //return null;
         }
     }
 
@@ -910,7 +980,7 @@ public without sharing class controladorGeneracionPedidos {
         }
     }
 
-    public static ContentVersion createCSVFiles(List<String> productList, Boolean asociateRecord){
+    public static ContentVersion createCSVFiles(List<String> productList, String orderId) {
 
         List<Order_Line_Item__c> lineItems = [
             SELECT Product__r.Name, Product__r.Product_Code_ID__c, Product__r.Description__c, Cantidad_Solicitada__c,
@@ -924,11 +994,21 @@ public without sharing class controladorGeneracionPedidos {
             system.debug('CSV');
             system.debug(lineItems);
 
-            Order__c order = [
-                SELECT Id, Name, Tipo_de_Pedido__c, Fecha_de_Creacion__c, UMU__c, Estatus__c
-                FROM Order__c
-                WHERE Id = :lineItems.get(0).Order__c LIMIT 1
-            ];
+            Order__c order = new Order__c();
+
+            if(orderId != '') {
+                order = [
+                    SELECT Id, Name, Tipo_de_Pedido__c, Fecha_de_Creacion__c, UMU__c, Estatus__c
+                    FROM Order__c
+                    WHERE Id = :orderId LIMIT 1
+                ];
+            } else {
+                order = [
+                    SELECT Id, Name, Tipo_de_Pedido__c, Fecha_de_Creacion__c, UMU__c, Estatus__c
+                    FROM Order__c
+                    WHERE Id = :lineItems.get(0).Order__c LIMIT 1
+                ];
+            }
 
             system.debug(order);
 
@@ -939,14 +1019,16 @@ public without sharing class controladorGeneracionPedidos {
             ];
             system.debug(umu);
 
-            Programas__c program = [
-                SELECT Id, Name, Programa_ID__c
-                FROM Programas__c
-                WHERE Id = :lineItems.get(0).Product__r.Programa__c LIMIT 1
-            ];
+            Programas__c program = new Programas__c();
 
             // Agregar los valores de Subalmacen__r.Name y Subalmacen__r.Numero_de_Subalmacen__c
             for (Order_Line_Item__c item : lineItems) {
+                program = [
+                    SELECT Id, Name, Programa_ID__c
+                    FROM Programas__c
+                    WHERE Id = :item.Product__r.Programa__c LIMIT 1
+                ];
+
                 csvRows.add(umu.Delegaci_n__c + ',' + umu.UMU__c + ',' + umu.Clave_Presupuestal__c
                 + ',' + umu.Name + ',' + order.Tipo_de_Pedido__c + ',' + order.Fecha_de_Creacion__c
                 + ',' + item.Product__r.Product_Code_ID__c + ',' + item.Product__r.Name + ',' + item.Product__r.Description__c
@@ -968,8 +1050,8 @@ public without sharing class controladorGeneracionPedidos {
         contentVersion.VersionData = contentBlob;
         contentVersion.Title = 'FILE CSV.csv';
         contentVersion.PathOnClient = 'File.csv';
-        if(asociateRecord && lineItems.size() > 0) {
-            contentVersion.FirstPublishLocationId = lineItems.get(0).Order__c; 
+        if(orderId != '' && lineItems.size() > 0) {
+            contentVersion.FirstPublishLocationId = orderId;
         }
         return contentVersion;
     }

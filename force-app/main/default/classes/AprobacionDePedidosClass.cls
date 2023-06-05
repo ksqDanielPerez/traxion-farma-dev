@@ -306,14 +306,15 @@ public with sharing class AprobacionDePedidosClass {
             WHERE Id =: pedidoId
             LIMIT 1
         ];
-        String idDePedido = pedidoList[0].ID_de_Pedido__c;
+        Pedido__c pedido = pedidoList[0];
+        String idDePedido = pedido.ID_de_Pedido__c;
 
 
-        List<Order__c> orderList = [
-            SELECT Id
-            FROM Order__c
-            WHERE Pedido__c =: pedidoId
-        ];
+        // List<Order__c> orderList = [
+        //     SELECT Id
+        //     FROM Order__c
+        //     WHERE Pedido__c =: pedidoId
+        // ];
 
         List<Order_Line_Item__c> oliList = [
             SELECT Id, Product__c, Order__c, Pedido__c
@@ -334,14 +335,14 @@ public with sharing class AprobacionDePedidosClass {
             vfPageToRender = '/apex/AutorizacionDePedido?id=';
         } 
 
-        Pagereference pageRef = new Pagereference(vfPageToRender + orderList[0].Id + '&listaProductos=' + idsParameters);
+        Pagereference pageRef = new Pagereference(vfPageToRender + pedidoId + '&listaProductos=' + idsParameters);
 
         Blob contentBlob = pageRef.getContentAsPDF();
         ContentVersion contentVersion = new ContentVersion();
         contentVersion.VersionData = contentBlob;
         contentVersion.Title = idDePedido + '.pdf';
         contentVersion.PathOnClient = 'AprobacionDePedido.pdf';
-        contentVersion.FirstPublishLocationId = orderList[0].Id; 
+        contentVersion.FirstPublishLocationId = pedidoId; 
         contentVersionList.add(contentVersion);
         insert contentVersionList;
 
@@ -363,7 +364,7 @@ public with sharing class AprobacionDePedidosClass {
         mail.setTemplateId(et.Id);
         mail.setToAddresses(contactEmail);
         mail.setTargetObjectId(contactId); 
-        mail.setWhatId(orderList[0].Id); 
+        mail.setWhatId(pedidoId); 
 
         mail.setEntityAttachments(conVerList); 
 
