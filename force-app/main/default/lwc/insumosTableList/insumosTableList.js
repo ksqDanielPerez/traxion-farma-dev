@@ -12,11 +12,12 @@ import getSuppliesByProgram from '@salesforce/apex/SuppliesController.getSupplie
 import orderType from '@salesforce/messageChannel/order_type__c';
 
 const columns = [
+    {label: 'Clave', fieldName: 'Clave', type: 'text'},
     {label: 'Descripción', fieldName: 'Descripcion', type: 'text'},
     {label: 'DPN', fieldName: 'DPN', type: 'text'},
     {label: 'Validado', fieldName: 'Validado', type: 'text'},
     {label: 'Disponible En DPN', fieldName: 'DisponibleEnDpn', type: 'text'},
-    {label: 'Disponible a Solicitar', fieldName: 'DisponibleASolicitar', type: 'text'},
+    {label: 'Disponible en CENADI', fieldName: 'DisponibleASolicitar', type: 'text'},
     //{label: 'Existencia De Unidad', fieldName: 'ExistenciaDeUnidad', type: 'text'},
     //{label: 'Disponible En Cenadi', fieldName: 'DisponibleEnCenadi', type: 'text'},
     {label: 'En Tránsito', fieldName: 'EnTransito', type: 'text'},
@@ -25,8 +26,9 @@ const columns = [
 ];
 
 const columnsNoOrdinary = [
+    {label: 'Clave', fieldName: 'Clave', type: 'text'},
     {label: 'Descripción', fieldName: 'Descripcion', type: 'text'},
-    {label: 'Disponible a Solicitar', fieldName: 'DisponibleASolicitar', type: 'text'},
+    {label: 'Disponible en CENADI', fieldName: 'DisponibleASolicitar', type: 'text'},
     {label: 'En Tránsito', fieldName: 'EnTransito', type: 'text'},
     {label: 'Cantidad', fieldName: 'Cantidad', type: 'text', editable: true },
     {label: 'Acción', fieldName: 'Action', type: 'text'},
@@ -55,9 +57,10 @@ export default class InsumosTableList extends LightningElement {
     isInputValidate = false;
     isMultiplo = true;
     isSecondStep = false;
-    message = false;
+    noOrdinary = false;
     isUmuSeleccionada = false;
     isDataLoading = true;
+    isRendered = false;
 
     // Input Table Value
     pedidosCol = pedidosCol;
@@ -88,7 +91,7 @@ export default class InsumosTableList extends LightningElement {
     claves = ['010000574100'];
 
     get tamañoValidoDeDPN(){
-        return this.dpnList.length > 0;
+        return this.initialRecords.length > 0;
     }
 
     get mostrarOcultarTabla(){
@@ -117,14 +120,15 @@ export default class InsumosTableList extends LightningElement {
         var errorMessage = '';
         let isMultiplo = this.validateMultiplo(insumo.PiezaPorPaquete, element.value);
 
-        if(element.value <= 0 || element.value == null){
-            errorMessage = 'La cantidad mínima a ingresar es 1';
-        } else if(element.value > insumo.DisponibleEnDpn && !this.message){
+        
+        if(element.value > insumo.DisponibleEnDpn && !this.noOrdinary){
             errorMessage = 'La cantidad de la DPN ha sido excedida';
-        } else if(element.value > insumo.DisponibleASolicitar && this.message){
+        } else if(element.value > insumo.DisponibleASolicitar && this.noOrdinary){
             errorMessage = 'La cantidad disponible a solicitar ha sido excedida';
         } else if(!isMultiplo){
             errorMessage = `Este insumo solo puede solicitarse en múltiplos de ${insumo.PiezaPorPaquete}`;
+        } else if(element.value <= 0 || element.value == null){
+            errorMessage = 'La cantidad mínima a ingresar es 1';
         } else if(!Number.isInteger(Number(element.value))) {
             errorMessage = 'Ingrese números enteros, no decimales';
         }
@@ -289,8 +293,6 @@ export default class InsumosTableList extends LightningElement {
         this.isUmuSeleccionada = false;
     }
 
-    isRendered = false;
-
     renderedCallback() {
         if(!this.isRendered) {
             console.log('rendered table');
@@ -329,8 +331,8 @@ export default class InsumosTableList extends LightningElement {
 
     handleOrderType(message) {
         this.isDataLoading = true;
-        this.message = message.isNoOrdinario ? message.isNoOrdinario : false;
-        console.log('message table order: ' + this.message);
+        this.noOrdinary = message.isNoOrdinario ? message.isNoOrdinario : false;
+        console.log('message table order: ' + this.noOrdinary);
         this.handleLoadData();
     }
 
@@ -363,67 +365,156 @@ export default class InsumosTableList extends LightningElement {
         downloadElement.click();
     }
 
-    async handleLoadData(message){
-        //await this.loadOrderType();
-        //this.accountId = message.selectedUmu;
-        console.log('Hi');
-        console.log('message table handle load data: ' + this.message);
+    initialRecords = [];
+    isFirstTime = true;
+    totalRecords = 0;
+    currentPage = 1;
+    actualRecords = 0;
+    totalPages = 0;
+    displayedItems = [];
+    isFirstPage = true;
+    isLastPage = false;
+    pageSize = 5;
 
+    resetPagination() {
+        this.currentPage = 1;
+        this.actualRecords = 0;
+        this.isFirstTime = true;
+    }
+
+    async handleLoadData(message){
+        console.log('Hi');
+        console.log('message table handle load data: ' + this.noOrdinary);
+        this.resetPagination();
         var payload = [];
         var productKeys = [];
+
         if(this.accountId == 'Seleccionar Unidad Medica'){
             this.resetValues();
-        } else{
-            this.isUmuSeleccionada = true;
+            return;
+        }
 
-            if(!this.message) {
-                getActiveDpn({ accountId: this.accountId }).then(result =>{
-                    result.forEach( item =>{
-                        // mapped data
-                        let disponible = item.L_mite_Mensual__c - item.Consumido__c;
-                        let row = {
-                        Id: item.Product__r.Id,
-                        Clave: item.Product__r.Product_Code_ID__c,
-                        Descripcion: item.Product__r.Name,
-                        DPN: item.L_mite_Mensual__c,
-                        CantidadValidadaAcumulada: item.Consumido__c,
-                        DisponibleEnDpn: disponible,
-                        mostrarBoton: true,
-                        inputDisabled: false,
-                        }
-                        productKeys.push(item.Product__r.Product_Code_ID__c);
-                        payload.push(row);
-                    });
-                    this.List = [...payload];
-                    this.handleDisponibilidad(productKeys);
-                    this.dpnList = this.List;
+        this.isUmuSeleccionada = true;
+        const getDpnData = this.noOrdinary ? getDpnNoOrdinary() : getActiveDpn({ accountId: this.accountId });
 
-                }).catch(error =>{
-                    console.log('An error has occured ' + error.message);
-                    this.resetValues();
-                })
-            } else {
-                getDpnNoOrdinary().then(result => {
-                    result.forEach(item => {
-                        let row = {
-                        Id: item.Product__r.Id,
-                        Clave: item.Product__r.Product_Code_ID__c,
-                        Descripcion: item.Product__r.Name,
-                        mostrarBoton: true,
-                        inputDisabled: false,
-                        }
-                        productKeys.push(item.Product__r.Product_Code_ID__c);
-                        payload.push(row);
-                    });
-                    this.List = [...payload];
-                    this.handleDisponibilidad(productKeys);
-                    this.dpnList = this.List;
+        try {
+            const result = await getDpnData;
 
-                }).catch(error =>{
-                    console.log('An error has occured ' + error.message);
-                    this.resetValues();
-                })
-            }
+            result.forEach(item => {
+                const { Product__r } = item;
+                let consumido = item.Consumido__c > 0 && item.Consumido__c != null ? item.Consumido__c : 0;
+                let disponible = item.L_mite_Mensual__c - consumido;
+                let row = {
+                    Id: Product__r.Id,
+                    Clave: Product__r.Product_Code_ID__c,
+                    Descripcion: Product__r.Name,
+                    DPN: item.L_mite_Mensual__c,
+                    CantidadValidadaAcumulada: consumido,
+                    DisponibleEnDpn: disponible,
+                    mostrarBoton: true,
+                    inputDisabled: false,
+                };
+                productKeys.push(Product__r.Product_Code_ID__c);
+                payload.push(row);
+            });
+
+            this.List = [...payload];
+            this.handleDisponibilidad(productKeys);
+            this.dpnList = this.List;
+            this.initialRecords = this.List;
+            this.totalPages = Math.ceil(this.dpnList.length / this.pageSize);
+            this.totalRecords = this.dpnList.length;
+            this.updateDisplayedItems();
+        } catch (e) {
+            console.log('An error has occurred ' + error.message);
+            this.resetValues();
+        }
+
+        // if(!this.message) {
+        //     getActiveDpn({ accountId: this.accountId }).then(result =>{
+        //         result.forEach( item =>{
+        //             let consumido = item.Consumido__c > 0 && item.Consumido__c != null ? item.Consumido__c : 0;
+        //             let disponible = item.L_mite_Mensual__c - consumido;
+        //             let row = {
+        //                 Id: item.Product__r.Id,
+        //                 Clave: item.Product__r.Product_Code_ID__c,
+        //                 Descripcion: item.Product__r.Name,
+        //                 DPN: item.L_mite_Mensual__c,
+        //                 CantidadValidadaAcumulada: consumido,
+        //                 DisponibleEnDpn: disponible,
+        //                 mostrarBoton: true,
+        //                 inputDisabled: false,
+        //             }
+        //             productKeys.push(item.Product__r.Product_Code_ID__c);
+        //             payload.push(row);
+        //         });
+        //         this.List = [...payload];
+        //         this.handleDisponibilidad(productKeys);
+        //         this.dpnList = this.List;
+        //         this.initialRecords = this.List;
+
+        //         this.totalPages = Math.ceil(this.dpnList.length / this.pageSize);
+        //         this.totalRecords = this.dpnList.length;
+        //         this.updateDisplayedItems();
+
+        //     }).catch(error =>{
+        //         console.log('An error has occured ' + error.message);
+        //         this.resetValues();
+        //     })
+        // } else {
+        //     getDpnNoOrdinary().then(result => {
+        //         result.forEach(item => {
+        //             let row = {
+        //                 Id: item.Product__r.Id,
+        //                 Clave: item.Product__r.Product_Code_ID__c,
+        //                 Descripcion: item.Product__r.Name,
+        //                 mostrarBoton: true,
+        //                 inputDisabled: false,
+        //             }
+        //             productKeys.push(item.Product__r.Product_Code_ID__c);
+        //             payload.push(row);
+        //         });
+        //         this.List = [...payload];
+        //         this.handleDisponibilidad(productKeys);
+        //         this.dpnList = this.List;this.initialRecords = this.List;
+
+        //         this.totalPages = Math.ceil(this.dpnList.length / this.pageSize);
+        //         this.totalRecords = this.dpnList.length;
+        //         this.updateDisplayedItems();
+        //     }).catch(error =>{
+        //         console.log('An error has occured ' + error.message);
+        //         this.resetValues();
+        //     })
+        // }
+        
+    }
+
+    updateDisplayedItems() {
+        const startIndex = (this.currentPage - 1) * this.pageSize;
+        const endIndex = this.currentPage * this.pageSize;
+        this.displayedItems = this.dpnList.slice(startIndex, endIndex);
+        this.isFirstPage = this.currentPage === 1;
+        this.isLastPage = this.currentPage === this.totalPages;
+    
+        if(this.isFirstTime) {
+          this.actualRecords += this.displayedItems.length;
+          this.isFirstTime = false;
+        }
+    }
+
+    handleNext(){
+        if (this.currentPage < this.totalPages) {
+          this.currentPage++;
+          this.updateDisplayedItems();
+          this.actualRecords += this.displayedItems.length;
+        }
+    }
+    
+    handlePrev(){
+        if (this.currentPage > 1) {
+          this.currentPage--;
+          this.actualRecords -= this.displayedItems.length;
+          this.updateDisplayedItems();
         }
     }
 
@@ -468,15 +559,54 @@ export default class InsumosTableList extends LightningElement {
         if(nuevaLista && this.isUnidadMedica) this.dpnSolicitarList = nuevaLista;
     }
 
-    handleOnSearch(event){
-        this.isLoading = true;
-        this.search = event.target.value;
-        const count = this.search.split("");
-        let isCount = count.length >= 3 ? true: false;
+    // handleOnSearch(event){
+    //     this.isLoading = true;
+    //     this.search = event.target.value;
+    //     const count = this.search.split("");
+    //     let isCount = count.length >= 3 ? true: false;
 
-        if(isCount || count.length == 0) this.getDpnBySearch(this.search);
+    //     if(isCount || count.length == 0) this.getDpnBySearch(this.search);
 
-        this.isLoading = false;
+    //     this.isLoading = false;
+    // }
+
+    handleOnSearch(event) {
+        const searchKey = event.target.value.toLowerCase();
+        const previousPage = this.currentPage;
+        let searchRecords = [];
+
+        if(searchKey) {
+            this.dpnList = this.initialRecords;
+            if (this.dpnList) {
+                for (let record of this.dpnList) {
+                let valuesArray = Object.values(record);
+                for (let val of valuesArray) {
+                    let strVal = String(val);
+                    if (strVal) {
+                    if (strVal.toLowerCase().includes(searchKey)) {
+                        searchRecords.push(record);
+                        break;
+                    }
+                    }
+                }
+                }
+                this.currentPage = 1;
+                this.dpnList = searchRecords;
+                this.updateDisplayedItems();
+
+                console.log(searchRecords.length);
+                if(searchRecords.length < 5 || previousPage === this.totalPages) this.isLastPage = true;
+            }
+        } else {
+            console.log('en el else de buscar');
+            this.dpnList = this.initialRecords;
+            this.updateDisplayedItems();
+        }
+
+        this.actualRecords = (this.currentPage - 1) * this.pageSize + this.displayedItems.length;
+        this.currentPage = previousPage;
+
+        //console.log('Actual records: ' + JSON.stringify(this.actualRecords));
     }
 
     headers = {

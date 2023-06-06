@@ -33,13 +33,13 @@
                     </div>
 
                     <div class="c-container">
-                        <div if:true={isDataLoading} style="height: 200px; position:relative">
+                        <!-- <div if:true={isDataLoading} style="height: 200px; position:relative">
                             <div>
                                 <lightning-spinner variant="base" size="medium" alternative-text="Loading..."></lightning-spinner>
                             </div>
-                        </div>
+                        </div> -->
                         
-                        <template if:false={isDataLoading}>
+                        <!-- <template if:false={isDataLoading}> -->
                             <div class="slds-p-around_small slds-text-align_center table-scroll">
                                 <table id='tableToExcel' class="" aria-labelledby="element-with-table-label other-element-with-table-label">
                                     <!-- Generar Pedido table -->
@@ -56,7 +56,7 @@
                                             </tr>
                                         </thead>
 
-                                        <template for:each={dpnList} for:item="medica">
+                                        <template for:each={displayedItems} for:item="medica">
                                             <tr class="slds-hint-parent" key={medica.Id} data-id={medica.Id}>
                                                     <td data-label="Clave" scope="row">
                                                         <div class="slds-truncate td">{medica.Clave}</div>
@@ -80,7 +80,7 @@
                                     <!-- Aqui termina el generar pedido table -->
                                     <template if:false={isGenerarPedido}>
                                         <template if:false={isPedidos}>
-                                            <template if:false={message}>
+                                            <template if:false={noOrdinary}>
                                                 <thead>
                                                     <tr class="slds-line-height_reset">
                                                     <template for:each={columns} for:item="column">
@@ -94,12 +94,15 @@
                                                 </thead>
                                                 <tbody>
                                                     <!-- Solicitar Pedidos -->
-                                                        <template for:each={dpnList} for:item="medica">
+                                                        <template for:each={displayedItems} for:item="medica">
                                                             <!-- <c-insumo-row key={medica.Id} data-id={medica.Id} rowdata={medica}></c-insumo-row> -->
                                                             <tr class="slds-hint-parent" key={medica.Id} data-id={medica.Id}>
-                                                                    <th data-label="Descripcion" scope="row">
-                                                                        <div class="slds-truncate">{medica.Descripcion}</div>
+                                                                    <th data-label="Clave" scope="row">
+                                                                        <div class="slds-truncate">{medica.Clave}</div>
                                                                     </th>
+                                                                    <td data-label="Descripcion" scope="row">
+                                                                        <div class="slds-truncate">{medica.Descripcion}</div>
+                                                                    </td>
                                                                     <td data-label="DPN">
                                                                         <div class="slds-truncate">{medica.DPN}</div>
                                                                     </td>
@@ -171,26 +174,29 @@
                                                         </template>
                                                 </tbody>
                                             </template>
-                                            <template if:true={message}>
+                                            <template if:true={noOrdinary}>
                                                 <thead>
                                                     <tr class="slds-line-height_reset">
                                                     <template for:each={columnsNoOrdinary} for:item="column">
-                                                            <th class="" scope="col" key={column.key}>
-                                                                <div class="slds-truncate" title={column.label}>
-                                                                    {column.label}
-                                                                </div>
-                                                            </th>
+                                                        <th class="" scope="col" key={column.key}>
+                                                            <div class="slds-truncate" title={column.label}>
+                                                                {column.label}
+                                                            </div>
+                                                        </th>
                                                     </template>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
                                                     <!-- Solicitar Pedidos -->
-                                                        <template for:each={dpnList} for:item="medica">
+                                                        <template for:each={displayedItems} for:item="medica">
                                                             <!-- <c-insumo-row key={medica.Id} data-id={medica.Id} rowdata={medica}></c-insumo-row> -->
                                                             <tr class="slds-hint-parent" key={medica.Id} data-id={medica.Id}>
-                                                                    <th data-label="Descripcion" scope="row">
-                                                                        <div class="slds-truncate">{medica.Descripcion}</div>
+                                                                    <th data-label="Clave" scope="row">
+                                                                        <div class="slds-truncate">{medica.Clave}</div>
                                                                     </th>
+                                                                    <td data-label="Descripcion" scope="row">
+                                                                        <div class="slds-truncate">{medica.Descripcion}</div>
+                                                                    </td>
                                                                     <td data-label="DisponibleASolicitar">
                                                                         <div class="slds-truncate">{medica.DisponibleASolicitar}</div>
                                                                     </td>
@@ -266,8 +272,11 @@
                                                 </div> -->
                                                 <tr class="slds-hint-parent" key={pedidos.Id} data-id={pedidos.Clave}>
                                                     <th data-label="Descripcion" scope="row">
-                                                        <div class="slds-truncate">{pedidos.Descripcion}</div>
+                                                        <div class="slds-truncate">{pedidos.Clave}</div>
                                                     </th>
+                                                    <td data-label="Descripcion" scope="row">
+                                                        <div class="slds-truncate">{pedidos.Descripcion}</div>
+                                                    </td>
                                                     <td data-label="DPN">
                                                         <div class="slds-truncate">{pedidos.DPN}</div>
                                                     </td>
@@ -301,8 +310,38 @@
     
                                     </template>
                                 </table>
+
+                                <div class="slds-align_absolute-center slds-m-top_small"> 
+                                    <div class="slds-p-right_xx-small">      
+                                        <lightning-button 
+                                            label="Anterior"
+                                            disabled={isFirstPage} 
+                                            onclick={handlePrev}
+                                            variant="brand"
+                                            icon-name="utility:back"
+                                            name="prev">
+                                        </lightning-button>  
+                                    </div>
+            
+                                    <span class="slds-badge slds-badge_lightest">
+                                        {actualRecords} de {totalRecords} Registros | Página {currentPage} de {totalPages}
+                                    </span>
+            
+                                    <div class="slds-p-left_xx-small">
+                                        <lightning-button
+                                        label="Siguiente"
+                                        disabled={isLastPage}
+                                        onclick={handleNext}
+                                        variant="brand"
+                                        icon-name="utility:forward"
+                                        icon-position="right"
+                                        name="next">
+                                        </lightning-button>
+                                    </div>
+                                </div> 
+
                             </div>
-                        </template>
+                        <!-- </template> -->
 
                         
                     </div>
