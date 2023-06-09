@@ -2,6 +2,7 @@
   --green: #8AC6BF;
   --darkGreen: #619a94;
   --lightGray: #f9f9f9;
+  --text: 0.875rem;
 }
 
 @font-face {
@@ -9,15 +10,15 @@
     src: url('/resource/ASSETS/ASSETS/Raleway-Regular.ttf') format('TrueType');
 }
 
-/* *{
-    font-family: 'raleway';
-    font-size: 0.938rem;
-} */
+*{
+    /* font-family: 'raleway'; */
+    font-size: var(--text);
+}
 
 .container{
     border-radius: 1px;
     background-color: white;
-    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(114, 114, 114, 0.19);
+    /* box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(114, 114, 114, 0.19); */
 }
 
 .form-design{
@@ -27,11 +28,6 @@
 .input-design{
     padding-left: 7px;
 }
-
-/* .table-scroll{
-    overflow: scroll;
-    overflow-x: auto;
-} */
 
 .c-container{
     margin-top: 15px;
@@ -45,9 +41,9 @@
     margin: 12px;
 }
 
-.layout-excel{
-    margin-top: 33px;
+.layout-excel {
     text-align: right;
+    margin: auto;
 }
 
 lightning-icon {
@@ -68,9 +64,9 @@ lightning-icon {
     margin-top: 3px;
 }
 
-.option-text{
+/* .option-text{
     font-size: 15px;
-}
+} */
 
 
 
@@ -103,6 +99,6 @@ td:last-child {
     text-align: center;
 } */
 
-tr:nth-child(even) {
+/* tr:nth-child(even) {
     background-color: var(--lightGray);
-}
+} */

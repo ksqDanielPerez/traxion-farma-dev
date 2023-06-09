@@ -1,0 +1,60 @@
+<template>
+    <!-- <div class="container">  
+        <div class="slds-p-around_none slds-m-top_x-small slds-m-bottom_medium slds-m-horizontal_none">
+            <lightning-layout multiple-rows class="custom-box-design">
+
+                <lightning-layout-item size="12" small-device-size="4" medium-device-size="4" large-device-size="4" padding="around-small" class="layout-design">
+                    <div style={generarPedidoBackgrounColor} class="box-generar border-left-radius">
+                        <button class="layout-design-title" onclick={handleGenerarPedido}>Generación De Pedidos</button>
+                    </div>
+                    <div class="box box_right">
+                        <template if:true={isGenerarPedidos}> 
+                            <div class="triangulo triangulo_right"></div>
+                        </template>
+                    </div>
+                </lightning-layout-item>
+
+                <lightning-layout-item size="12" small-device-size="4" medium-device-size="4" large-device-size="4" padding="around-small" class="layout-design">
+                    <div class="box box_left">
+                        <template if:true={isSolicitarPedidos}> 
+                            <div class="triangulo triangulo_left"></div>
+                        </template>
+                    </div>   
+                    <div style={solicitarPedidoBackgroundColor} class="box-generar-centro">
+                        <button class="layout-design-title solicitar-pedido-button" onclick={handleSolicitarPedido} disabled={disable}>Solicitar Pedidos</button>
+                    </div>
+                    <div class="box_right box_right_middle">
+                        <template if:true={isSolicitarPedidos}> 
+                            <div class="triangulo triangulo_right"></div>
+                        </template>
+                    </div>
+                </lightning-layout-item>
+
+                <lightning-layout-item size="12" small-device-size="4" medium-device-size="4" large-device-size="4" padding="around-small" class="layout-design">
+                    <div class="box box_left">
+                        <template if:true={isPedidos}> 
+                            <div class="triangulo triangulo_left"></div>
+                        </template>
+                    </div>   
+                    <div style={isPedidoBackgroundColor} class="box-generar box-generar-margin border-right-radius">
+                        <button class="layout-design-title" onclick={handlePedidos} disabled={disable}>Pedidos</button>
+                    </div>             
+                </lightning-layout-item>
+
+            </lightning-layout>
+        </div>
+    </div> -->
+
+    <div class="slds-theme_default container">
+        <div class="progress-indicator" style={menuDisabled}>
+            <lightning-progress-indicator type="path" current-step={selectedStep}>
+                <lightning-progress-step label="Generación De Pedidos" onstepfocus={selectStep1} onclick={handleGenerarPedido} value="Step1">
+                </lightning-progress-step>
+                <lightning-progress-step label="Solicitar Pedidos" onstepfocus={selectStep2} onclick={handleSolicitarPedido}  value="Step2">
+                </lightning-progress-step>
+                <lightning-progress-step label="Pedidos" onclick={handlePedidos} onstepfocus={selectStep3} value="Step3">
+                </lightning-progress-step>
+            </lightning-progress-indicator>
+        </div>
+    </div>
+</template>

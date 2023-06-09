@@ -1,20 +1,24 @@
-/* *{
-    margin: 0;
-    padding: 0;
-} */
+:host {
+    --green: #8AC6BF;
+    --darkGreen: #619a94;
+    --lightGray: #f9f9f9;
+    --gray: rgb(84, 83, 83);
+    --text: 0.875rem;
+  }
 
-/* .container{
-    min-height: 354px;
-    margin-top: 23px;
-    border-radius: 1px;
-    background-color: white;
-    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(114, 114, 114, 0.19);
-} */
+@font-face {
+    font-family: 'raleway';
+    src: url('/resource/ASSETS/ASSETS/Raleway-Regular.ttf') format('TrueType');
+}
+
+*{
+    /* font-family: 'raleway'; */
+    font-size: var(--text);
+}
 
 .layout-documentos{
     margin: 27px auto;
     width: 300px;
-
 }
 
 .c-container{
@@ -24,14 +28,16 @@
     box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(114, 114, 114, 0.19);
 }
 
+.container-info {
+    margin: auto;
+}
+
 .custom-box-design{
-    /* margin-left: 30px; */
-    color: rgba(84, 83, 83, 100);
+    color: var(--gray);
 }
 
 .layout-item-align{
     text-align: left;
-    /* margin-top: 20px; */
 }
 
 .title{
@@ -59,12 +65,11 @@
 }
 
 .guardar-btn {
-    background-color: #8AC6BF;
-    /* Green */
+    background-color: var(--green);
     border: none;
     color: white;
-    border-radius: 10px;
-    padding: 15px 32px;
+    border-radius: .3rem;
+    padding: .5rem 0;
     text-decoration: none;
     display: inline-block;
     font-size: 16px;
@@ -73,24 +78,14 @@
 }
 
 .guardar-btn-ordinario {
-    background-color: #8AC6BF;
-    /* Green */
-    border: none;
-    color: white;
-    border-radius: 10px;
-    padding: 15px 32px;
-    text-decoration: none;
-    display: inline-block;
-    font-size: 16px;
-    margin-bottom: 12px;
+    /* margin-bottom: 12px; */
+    width: 10rem;
 }
 
-/* .row {
-    overflow: hidden;
+.slds-modal__content-orden{
+    text-align: left;
 }
 
-.col {
-    float: left;
-    padding-bottom: 100%;
-    margin-bottom: -100%;
-} */
+.medical-unit-container {
+    padding: 1rem;
+}

@@ -1,0 +1,43 @@
+:host {
+  --green: #8AC6BF;
+  --darkGreen: #619a94;
+  --lightGray: #f9f9f9;
+  --lwc-fontFamilyHeader: 'raleway';
+}
+
+@font-face {
+  font-family: 'raleway';
+  src: url('/resource/ASSETS/ASSETS/Raleway-Regular.ttf') format('TrueType');
+}
+
+*{
+  font-family: 'raleway';
+  font-size: 0.938rem;
+}
+
+.slds-modal__footer {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.slds-modal__container {
+  width: 30% !important;
+  min-width: 30% !important;
+}
+
+/* .footer {
+  display: inline-flex;
+  width: 100%;
+  gap: 0.5rem;
+  align-items: center;
+  justify-content: center;
+} */
+
+/* @media (min-width: 48em) {
+  .slds-modal_small .slds-modal__container {
+    width: 30% !important;
+    max-width: 30% !important;
+    min-width: 20rem;
+  }
+} */

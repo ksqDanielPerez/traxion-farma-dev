@@ -16,25 +16,25 @@
 } 
   
 .col-a {
-    float: left;
+    /* float: left;
     padding-bottom: 100%;
-    margin-bottom: -100%;
+    margin-bottom: -100%; */
 
     /* margin-right: 15px; */
     margin-top: 25px;
     background-color: white;
-    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(114, 114, 114, 0.19);
+    /* box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(114, 114, 114, 0.19); */
 }
 
 .col-b {
-    float: left;
+    /* float: left;
     padding-bottom: 100%;
-    margin-bottom: -100%;
+    margin-bottom: -100%; */
 
     margin-right: 15px;
     margin-top: 25px;
     background-color: white;
-    box-shadow: 0 0 2px rgba(0, 0, 0, 0.1);
+    /* box-shadow: 0 0 2px rgba(0, 0, 0, 0.1); */
 }
 
 .selectUmus {

@@ -1,0 +1,46 @@
+<template >
+    <div class="slds-is-relative" >
+        <!-- style="width: 40%;display: flex;flex-direction: column;justify-content: center;margin: auto;" -->
+        <div if:true={isDataLoading}>
+            <lightning-spinner variant="base" size="medium" alternative-text="Loading..."></lightning-spinner>
+        </div>
+
+        <lightning-modal-header label="Confirmar Pedido"></lightning-modal-header>
+        <lightning-modal-body>
+            <p>Estas a punto de colocar {content}, esta acción no puede ser un
+                revertida, ni se podrá editar una vez colocado.</p>
+            <p>¿Seguro que deseas continuar?</p>
+        </lightning-modal-body>
+        <lightning-modal-footer class="footer">
+            <lightning-button label="Cancelar" onclick={handleClose}></lightning-button>
+            <lightning-button label="Guardar" variant="brand" onclick={handleSave}></lightning-button>
+        </lightning-modal-footer>
+    </div>
+</template>
+
+<!-- <template>
+    <section role="dialog" tabindex="-1" aria-modal="true" aria-labelledby="modal-heading-01" class="slds-modal slds-fade-in-open">
+        <div class="slds-modal__container">
+          <div class="slds-is-relative">
+                <div if:true={isDataLoading}>
+                    <lightning-spinner variant="base" size="medium" alternative-text="Loading..."></lightning-spinner>
+                </div>
+
+                <div class="slds-modal__header">
+                    <h1 id="modal-heading-01" class="slds-modal__title slds-hyphenate" tabindex="-1">Colocar Pedido</h1>
+                </div>
+
+                <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
+                    <p>Estas a punto de colocar {content}, esta acción no puede ser revertida, 
+                        ni se podrá editar una vez colocado.</p>
+                    <p>¿Seguro que deseas continuar?</p>
+                </div>
+                <footer class="slds-modal__footer">
+                    <lightning-button class="slds-button slds-button_neutral" onclick={handleClose}>Cancelar</lightning-button>
+                    <lightning-button class="slds-button slds-button_brand" onclick={handleSave}>Colocar</lightning-button>
+                </footer>
+          </div>
+        </div>
+      </section>
+      <div class="slds-backdrop slds-backdrop_open" role="presentation"></div>
+</template> -->

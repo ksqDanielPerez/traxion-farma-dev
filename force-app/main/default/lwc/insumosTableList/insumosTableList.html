@@ -3,7 +3,7 @@
         <div class="container">
             <template if:true={mostrarOcultarTabla}>
                 <template if:true={tamañoValidoDeDPN}>
-                    <div class="slds-align_absolute-center slds-p-around_small option-text">
+                    <div if:true={isGenerarPedido} class="slds-align_absolute-center slds-p-around_small option-text">
                         <b>DPN activa de la Unidad Médica</b>
                     </div>
 
@@ -11,11 +11,11 @@
                         <lightning-layout class="slds-p-horizontal_small">
                             <lightning-layout-item size="6">
                                 <div class="slds-form-element">
-                                    <label class="slds-form-element__label" for="text-input-id-1"> 
+                                    <label class="slds-form-element__label" for="text-input-id-1">
                                         {showTitleForSearch}
                                     </label>
                                     <div class="search-align search-margin-left">
-                                        <lightning-input data-id="loading" type="search" value={search} onchange={handleOnSearch} is-loading={isLoading}></lightning-input>
+                                        <lightning-input variant="label-hidden" data-id="loading" type="search" value={search} onchange={handleOnSearch} is-loading={isLoading}></lightning-input>
                                     </div>
                                 </div>
                             </lightning-layout-item>

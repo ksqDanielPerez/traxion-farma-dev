@@ -5,16 +5,10 @@
 
 .container {
     width: 100%;
-    /* margin-left: 20px; */
-    margin-top: 23px;
-    padding: 20px;
-    border-radius: 1px;
+    /* padding: 1rem 0; */
+    /* border-radius: 1px;
     background-color: white;
-    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(114, 114, 114, 0.19);
-}
-
-.custom-box {
-    margin-left: 10px;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(114, 114, 114, 0.19); */
 }
 
 .calendario-button {
@@ -45,25 +39,22 @@
 
 .calendario-button:hover {
     background-color: #5b968f;
-    /* Green */
 }
 
 .grid {
     display: grid;
-    grid-template-columns: 1f;
     grid-template-rows: 50px 100px;
     place-items: center;
     border-radius: 1px;
-    padding: 3px;
+    padding: .5rem;
     border: 1px solid #e6e6e6;
-    box-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.2), 0 1px 1px 0 rgba(114, 114, 114, 0.19);
+    /* box-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.2), 0 1px 1px 0 rgba(114, 114, 114, 0.19); */
     font-size: 15px;
     height: 260px;
     
 }
 
 .grid:hover {
-    /* cursor: pointer; */
     border: 1px solid #e6e6e6;
     box-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.2), 0 1px 1px 0 rgba(114, 114, 114, 0.19);
 }
@@ -85,6 +76,10 @@
 
 .custom-box {
     border: none;
+}
+
+.left-util {
+    margin-left: .5rem;
 }
 
 .white {

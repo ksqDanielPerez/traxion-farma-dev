@@ -13,7 +13,6 @@ import USER_ID from "@salesforce/user/Id";
 import createOrders from '@salesforce/apex/controladorGeneracionPedidos.deserializeOrders';
 import generatePDF from '@salesforce/apex/controladorGeneracionPedidos.generatePdfFiles';
 import createContentVersion from '@salesforce/apex/controladorGeneracionPedidos.createContentVersion';
-import getSubalmacenById from '@salesforce/apex/SubalmacenController.getSubalmacenById';
 import { NavigationMixin } from 'lightning/navigation';
 
 export default class ProgramSuppliesList extends NavigationMixin(LightningElement) {
@@ -325,11 +324,11 @@ export default class ProgramSuppliesList extends NavigationMixin(LightningElemen
         if (this.isStep3) {
           this.listRecords = Array.from({ length: sessionStorage.length - 1 }, (_, i) => sessionStorage.getItem(i + 1));
           console.log('Lista: ' + JSON.stringify(this.listRecords));
-          await this.getAvailabilitySkus(); // Esperar a que se resuelva getAvailabilitySkus() antes de continuar
+          //await this.getAvailabilitySkus(); // Esperar a que se resuelva getAvailabilitySkus() antes de continuar
 
-          this.skuData?.forEach((sku) => {
-            skuDataDict[sku.sku] = sku; // sku.sku es la clave y se le asigna todo el objeto
-          });
+          // this.skuData?.forEach((sku) => {
+          //   skuDataDict[sku.sku] = sku; // sku.sku es la clave y se le asigna todo el objeto
+          // });
         }
 
         result.forEach(async (row) => {
@@ -343,18 +342,18 @@ export default class ProgramSuppliesList extends NavigationMixin(LightningElemen
           dataLine.showButton = true;
 
           if (this.isStep3) {
-            if(this.skuData.length > 0) {
-              console.log('SkuData:' + JSON.stringify(this.skuData));
-              const sku = skuDataDict[row.Product_Code_ID__c]; // se filtra por la clave y si existe se le asigna el objeto
+            // if(this.skuData.length > 0) {
+            //   console.log('SkuData:' + JSON.stringify(this.skuData));
+            //   const sku = skuDataDict[row.Product_Code_ID__c]; // se filtra por la clave y si existe se le asigna el objeto
 
-              if (sku) {
-                console.log('inside if sku, condition true');
-                dataLine.availability = sku.availability ? sku.availability : 0;
-                if(sku.packages_details.length > 0) {
-                  dataLine.quantityPiecesPackage = sku.packages_details.map(piece => piece.quantity_pieces_package).join(", ");
-                }
-              }
-            }
+            //   if (sku) {
+            //     console.log('inside if sku, condition true');
+            //     dataLine.availability = sku.availability ? sku.availability : 0;
+            //     if(sku.packages_details.length > 0) {
+            //       dataLine.quantityPiecesPackage = sku.packages_details.map(piece => piece.quantity_pieces_package).join(", ");
+            //     }
+            //   }
+            // }
 
             if (this.listRecords.includes(dataLine.productCodeId)) {
               supplieList.push(dataLine);
@@ -704,65 +703,40 @@ export default class ProgramSuppliesList extends NavigationMixin(LightningElemen
     }))
 
     console.log(JSON.stringify(this.carrito));
+    const inputs = Array.from(this.template.querySelectorAll('lightning-input[data-name="quantityInput"]'));
+    const inputValues = inputs.map((input) => ({
+        code: input.dataset.code,
+        umu: input.dataset.umu,
+        productName: input.dataset.productname,
+        description: input.dataset.description,
+        value: input.value
+    }));
 
-    createOrders({ payload: JSON.stringify(this.carrito)})
-    .then((result) => {
-      if(result) {
-        console.log('Pedido: ');
-        console.log(JSON.stringify(result));
+    const extraData = {
+      orderType: this.orderType,
+      contactId: this.contactId,
+    };
 
-        // result.forEach(order => {
-        //   generatePDF({idOrden: order.Id}).then(result => {
-        //     console.log('Se ha generado exitosamente: ');
-        //     console.log(JSON.parse(JSON.stringify(result)));
-        //   }).catch(error =>{
-        //     console.log('An error has occured: ' + error.getMessage());
-        //   });
-        // });
+    this.openConfirmationModal(this.carrito, this.dataOfUmusSelected, inputValues, this.programInfo, extraData);
 
-        const orderIds = [];
-
-        result.forEach((order) => {
-          orderIds.push(order.Id);
-        });
-
-        generatePDF({orderIds: orderIds}).then(result => {
-          console.log('Se ha generado exitosamente: ');
-          console.log(JSON.parse(JSON.stringify(result)));
-        }).catch(error =>{
-          console.log('An error has occured: ' + error.getMessage());
-        });
-
-        console.log('OrderId');
-        this.orderId = result[0].Id;
-        console.log(this.orderId);
-
-        this.generateDataToSendEmail();
-
-        this.showToast('Guardado', 'El pedido se ha guardado correctamente', 'success', 'pester');
-
-        this[NavigationMixin.Navigate]({
-          type: 'comm__namedPage',
-          attributes:{
-            name: "Mis_Pedidos__c"
-          }
-        });
-      }
-    })
-    .catch((error) => {
-      this.error = error;
-      console.log(JSON.stringify(error));
-    });
   }
 
   // Modals
 
-  async openConfirmationModal(carrito) {
-    const result = await modalConfirmation.open({
-      size: 'small',
-      carrito: carrito
-    });
-    console.log(result);
+  async openConfirmationModal(carrito, umusSelected, inputs, program, extraData) {
+    try {
+      const result = await modalConfirmation.open({
+        size: 'small',
+        carrito: carrito,
+        umusSelected: umusSelected,
+        inputs: inputs,
+        program: program,
+        extraData: extraData
+      });
+      console.log(result);
+    } catch (error) {
+      console.error('Error opening modal:', error);
+    }
   }
 
   async openModal(productCode) {

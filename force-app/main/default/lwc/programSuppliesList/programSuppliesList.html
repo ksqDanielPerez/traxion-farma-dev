@@ -137,13 +137,14 @@
 
     <template if:true={isStep3}>
 
-        <div if:false={isDataSkuLoaded} style="height: 200px; position:relative">
+        <!-- <div if:false={isDataSkuLoaded} style="height: 200px; position:relative">
             <div>
                 <lightning-spinner variant="base" size="medium" alternative-text="Loading..."></lightning-spinner>
             </div>
-        </div>
+        </div> -->
 
-        <div if:true={isDataSkuLoaded} class="slds-clearfix slds-m-bottom_small">
+        <!-- <div if:true={isDataSkuLoaded} class="slds-clearfix slds-m-bottom_small"> -->
+        <div class="slds-clearfix slds-m-bottom_small">
             <lightning-button
                 label="Agregar Piezas"
                 variant="Brand"
@@ -170,7 +171,7 @@
             </lightning-button-icon>
         </div>
 
-        <template if:true={isDataSkuLoaded}>
+        <!-- <template if:true={isDataSkuLoaded}> -->
             <template if:true={isUmusSelectedDataLoaded} for:each={dataOfUmusSelected} for:item="gData">
                 <div key={gData.Id} class="container">
                     <lightning-card>
@@ -243,7 +244,7 @@
                     </lightning-card>
                 </div>
             </template>
-        </template>
+        <!-- </template> -->
     </template>
 
     <template if:true={isProgramPicklistEmpty}>

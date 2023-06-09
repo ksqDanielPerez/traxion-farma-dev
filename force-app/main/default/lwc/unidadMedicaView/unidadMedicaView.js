@@ -8,14 +8,18 @@ import generarPdf from '@salesforce/apex/controladorGeneracionPedidos.generatePd
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import LightningAlert from 'lightning/alert';
 import uploadFile from '@salesforce/apex/FilesController.uploadFile';
-
 import checkGeneracionDePedido from '@salesforce/apex/UserContactClass.checkGeneracionDePedido';
+import modalConfirmation from 'c/programConfirmationModal';
 
 export default class UnidadMedicaView extends LightningElement {
 
     @wire(MessageContext)
     messageContext;
+
     isUnidadMedica = false;
+    isGuardarClicked = false;
+    isOrdenCreada = false;
+    isSolicitarPedidos = false;
     error;
     unidadMedica = {};
 
@@ -39,6 +43,19 @@ export default class UnidadMedicaView extends LightningElement {
     fileData = {};
     fileName = '';
 
+    @api firstName;
+
+    // @wire(getRecord, {recordId: '$userId', fields: 'Contact.Name' })
+    // firstName;
+
+    get mostrarModalDetalles(){
+        if(this.isOrdenCreada){
+            return true;
+        }else{
+            return false;
+        }
+    }
+
     susbcribeToMessageChannel(){
         subscribe(
             this.messageContext,
@@ -48,9 +65,11 @@ export default class UnidadMedicaView extends LightningElement {
     }
 
     handleMessage(message){
+        this.isSolicitarPedidos = message.isSolicitarPedidos;
         if(message.isSolicitarPedidos){
             this.isUnidadMedica = true;
             this.isPedidos = false;
+            this.isUltimaVentantaOrdinario = false;
         }else if(message.isPedidos){
             this.isUnidadMedica = true;
             this.isPedidos = this.tipoDePedido !== 'Ordinario';
@@ -65,6 +84,10 @@ export default class UnidadMedicaView extends LightningElement {
         this.susbcribeToMessageChannel();
         this.susbcribeToMessageChannelUmu();
         this.susbcribeToMessageChannelCarrito();
+    }
+
+    renderedCallback() {
+        const button = this.tipoDePedido == 'Ordinario' ? this.template.querySelector('.guardar-btn-ordinario') :  this.template.querySelector('.guardar-btn-noordinario');
     }
 
     handlePedidoNoOrdinario(){
@@ -172,39 +195,64 @@ export default class UnidadMedicaView extends LightningElement {
         return ['.pdf'];
     }
 
-    isObjEmpty (obj) {
+    isObjEmpty(obj) {
         return Object.keys(obj).length === 0;
     }
 
+    handleCancelar(){
+        this.isGuardarClicked = !this.isGuardarClicked;
+    }
+
+    isInputValidate = true;
+
+    validateInputs(elements) {
+        //this.isInputValidate = true;
+        let errorMessage = '';
+
+        const fileElement = this.template.querySelector('lightning-input[data-name="uploadFile"]');
+        this.isObjEmpty(this.fileData) ? errorMessage = 'Este campo es obligatorio' : errorMessage = '';
+        fileElement.setCustomValidity(errorMessage);
+        fileElement.reportValidity();
+
+        elements.forEach(element => {
+            element.value === '' || element.value === null ? errorMessage = 'Este campo es obligatorio' : errorMessage = '';
+            element.setCustomValidity(errorMessage);
+            element.reportValidity();
+        });
+
+        if(errorMessage == '') {
+            if(this.isObjEmpty(this.carrito)) {
+                errorMessage = 'Debes añadir al menos un insumo para procesar el pedido'
+                this.showToast('Carrito vacío', errorMessage, 'error', 'pester');
+            } else if(this.tipoDePedido == 'No Ordinario') {
+                errorMessage = 'Debes seleccionar un tipo de pedido'
+                this.showToast('Tipo de pedido', errorMessage, 'error', 'pester');
+            }
+        }
+
+        console.log('error message: ' + errorMessage);
+        console.log('this.isInputValidate before: ' + this.isInputValidate);
+        this.isInputValidate = (errorMessage === '');
+        console.log('this.isInputValidate after: ' + this.isInputValidate);
+    }
+
     async handleGuardar(){
+        // console.log("Inside handle guardar");
+        // console.log('Numero oficio: ' + this.numeroOficio);
+        // console.log('Tipo pedido: ' + this.tipoDePedido);
 
-        console.log("Inside handle guardar");
-        console.log(this.numeroOficio);
-        console.log(this.tipoDePedido);
+        //let isRequiredFields = this.numeroOficio == '' || this.justificacion == '' || this.isObjEmpty(this.fileData) ? false : true;
+        //if(!isRequiredFields) return;
 
-        const button = this.tipoDePedido == 'Ordinario' ? this.template.querySelector('.guardar-btn-ordinario') :  this.template.querySelector('.guardar-btn');
-        button.disabled = true;
+        if(this.tipoDePedido != 'Ordinario') {
+            const inputs = this.template.querySelectorAll('.noOrdinaryField');
+            this.validateInputs(inputs);
 
-        if(this.isObjEmpty(this.carrito)){
-            button.disabled = false;
-            LightningAlert.open({
-                message: 'Debes tener un insumo añadido.',
-                theme: 'error',
-                label: 'Error!',
-            });
-            return;
+            if(!this.isInputValidate) return;
         }
 
-        if(this.tipoDePedido != 'Ordinario' && (this.numeroOficio == null || this.numeroOficio == '' )){
-            button.disabled = false;
-            LightningAlert.open({
-                message: 'Debes rellenar el campo Número de Oficio',
-                theme: 'error',
-                label: 'Error!',
-            });
-            return;
-        }
-
+        // const button = this.tipoDePedido == 'Ordinario' ? this.template.querySelector('.guardar-btn-ordinario') :  this.template.querySelector('.guardar-btn');
+        // button.disabled = true;
         console.log(JSON.parse(JSON.stringify(this.carrito)));
 
         let isNoOrdinario = this.tipoDePedido != 'No Ordinario' ? true: false;
@@ -212,56 +260,80 @@ export default class UnidadMedicaView extends LightningElement {
         this.carrito.numeroOficio = this.numeroOficio;
         this.carrito.justificacion = this.justificacion;
 
-        if(isNoOrdinario || this.tipoDePedido == 'Ordinario'){ 
+        // if(isNoOrdinario || this.tipoDePedido == 'Ordinario'){ 
+        //     console.log('Tamo aquiiii ' + this.isOrdenCreada + this.isGuardarClicked);
+            // const order = await crearOrden({payload: JSON.stringify([this.carrito])}).then(result =>{
+            //     return result;
+            // }).catch(error =>{
+            //     console.log('An error has occured: ' + error.getMessage());
+            // });
+            // const orderIds = [];
+            // order.forEach((ord) => {
+            //     orderIds.push(ord.Id);
+            // });
 
-            const order = await crearOrden({payload: JSON.stringify([this.carrito])}).then(result =>{
-                return result;
-            }).catch(error =>{
-                console.log('An error has occured: ' + error.getMessage());
-            });
+            // generarPdf({orderIds: orderIds}).then(result => {
+            //     console.log('Se ha generado exitosamente: ');
+            //     console.log(JSON.parse(JSON.stringify(result)));
+            // }).catch(error =>{
+            //     console.log('An error has occured: ' + error.getMessage());
+            // });
 
-            const orderIds = [];
-            order.forEach((ord) => {
-                orderIds.push(ord.Id);
-            });
+            // if(!this.isObjEmpty(this.fileData)){
+            //     this.fileData.recordId = order[0].Id;
+            //     const {filename, base64, recordId} = this.fileData;
+            //     await uploadFile({base64: base64, filename: filename, recordId: recordId});
+            // }
 
-            generarPdf({orderIds: orderIds}).then(result => {
-                console.log('Se ha generado exitosamente: ');
-                console.log(JSON.parse(JSON.stringify(result)));
-            }).catch(error =>{
-                console.log('An error has occured: ' + error.getMessage());
-            });
-
-            if(!this.isObjEmpty(this.fileData)){
-                this.fileData.recordId = order[0].Id;
-                const {filename, base64, recordId} = this.fileData;
-                await uploadFile({base64: base64, filename: filename, recordId: recordId});
-            }
-
-            if(this.tipoDePedido == 'Ordinario'){
-                console.log('Inside pedido ordinario');
-                const isCreated = await this.handleGeneracionDePedido(order);
-                console.log(isCreated);
-                if(!isCreated){ return;}
-            }
-
-            this.showToast('Success', 'Orden ha sido creada.', 'Success', 'pester');
+            // if(this.tipoDePedido == 'Ordinario'){
+            //     console.log('Inside pedido ordinario');
+            //     const isCreated = await this.handleGeneracionDePedido(order);
+            //     console.log(isCreated);
+            //     if(!isCreated){ return;}
+            // }
+            // this.isGuardarClicked = false;
+            // this.showToast('Success', 'Orden ha sido creada.', 'Success', 'pester');
             
-            setTimeout(() => {
-                location.reload();
-            }, 1500);
+            // setTimeout(() => {
+            //     location.reload();
+            // }, 200);
+        // }else{
+            // let isTipoDePedido = this.tipoDePedido == 'No Ordinario' ? '- Debes seleccionar un tipo de pedido.': ''; 
+            // button.disabled = false;
+            // console.log("Error Tipo pedido");
+            // LightningAlert.open({
+            //     message: isTipoDePedido,
+            //     theme: 'error',
+            //     label: 'Error!',
+            // });
+        // }
 
-        }else{
-            let isTipoDePedido = this.tipoDePedido == 'No Ordinario' ? '- Debes seleccionar un tipo de pedido.': ''; 
-            button.disabled = false;
-            LightningAlert.open({
-                message: isTipoDePedido,
-                theme: 'error',
-                label: 'Error!',
-            });
-        }
-
+        const extraData = {
+            orderType: 'Ordinario/NoOrdinario',
+            fileData: this.fileData
+        };
+        this.openConfirmationModal(this.carrito, extraData);
     }
+
+    async openConfirmationModal(carrito, extraData) {
+        try {
+          const result = await modalConfirmation.open({
+            size: 'small',
+            carrito: carrito,
+            //umusSelected: umusSelected,
+            //inputs: inputs,
+            //program: program,
+            extraData: extraData
+          });
+          console.log(result);
+        } catch (error) {
+          console.error('Error opening modal:', error);
+        }
+    }
+
+    // handleConfirmarPedido(){
+    //     this.isGuardarClicked = !this.isGuardarClicked;;
+    // }
 
     async handleGeneracionDePedido(orden) {  
         const orderIds = orden.map(ord => ord.Id); 
@@ -313,5 +385,4 @@ export default class UnidadMedicaView extends LightningElement {
     //         return 'slds-show';
     //     }
     // }
-
 }
